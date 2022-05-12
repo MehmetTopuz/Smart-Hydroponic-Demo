@@ -34,6 +34,7 @@ Core/Src \
 Core/Startup \
 Drivers/STM32G4xx_HAL_Driver/Src \
 ESP8266_Driver \
+MQTT_Library \
 RingBuffer \
 UnitTests \
 

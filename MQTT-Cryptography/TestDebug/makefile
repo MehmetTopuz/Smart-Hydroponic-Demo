@@ -11,6 +11,7 @@ RM := rm -rf
 -include sources.mk
 -include UnitTests/subdir.mk
 -include RingBuffer/subdir.mk
+-include MQTT_Library/subdir.mk
 -include ESP8266_Driver/subdir.mk
 -include Drivers/STM32G4xx_HAL_Driver/Src/subdir.mk
 -include Core/Startup/subdir.mk
