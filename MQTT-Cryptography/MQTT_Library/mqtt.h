@@ -19,6 +19,9 @@ extern "C"
 
 #include <stdint.h>
 
+#define MAX_LENGTH_OF_CLIENT_ID 	50
+
+
 typedef enum {
 	CONNECT_PACKET = 0,
 	SUBSCRIBE_PACKET,
@@ -35,7 +38,7 @@ typedef struct{
 	uint8_t Flag;						// Connect Flag Bits. For unsafety connection, use 0x02. @tag MQTT_TypeDef_Flag_MACROS
 	uint16_t KeepAlive;				// By Default 60.
 	uint16_t ClientIDLength;			// This one will be user defined. Client ID Length.
-	char ClientID[50];					// Client ID. User Defined.
+	char ClientID[MAX_LENGTH_OF_CLIENT_ID];					// Client ID. User Defined.
 }MQTT_Connect_Packet;
 
 
