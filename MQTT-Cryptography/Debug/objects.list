@@ -24,8 +24,4 @@
 "Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_uart_ex.o"
 "ESP8266_Driver/esp8266.o"
 "MQTT_Library/mqtt.o"
-"MQTT_Library/mqtt_connect_packet.pb.o"
-"MQTT_Library/pb_common.o"
-"MQTT_Library/pb_decode.o"
-"MQTT_Library/pb_encode.o"
 "RingBuffer/ring_buffer.o"

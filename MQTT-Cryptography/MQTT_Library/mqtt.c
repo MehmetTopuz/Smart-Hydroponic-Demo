@@ -46,5 +46,31 @@ int32_t mqtt_encode_packet(uint8_t *buffer, void *packet, mqtt_packet_types pack
 		return index;
 
 	}
+	else if(packetType == SUBSCRIBE_PACKET)
+	{
+
+		int32_t index = 0;
+
+		MQTT_Subscribe_Packet *subscribePacket = (MQTT_Subscribe_Packet*)packet;
+
+		buffer[index++] = subscribePacket->subscribePacketByte;
+		buffer[index++] = subscribePacket->remainLength;
+		buffer[index++] = subscribePacket->packetID >> 8;
+		buffer[index++] = subscribePacket->packetID & 0xFF;
+		buffer[index++] = subscribePacket->topicLength >> 8;
+		buffer[index++] = subscribePacket->topicLength & 0xFF;
+		for(uint16_t i=0;i<subscribePacket->topicLength;i++)
+		{
+			if(i == MAX_LENGTH_OF_TOPIC_NAME)
+				return -1;
+			buffer[index++] = subscribePacket->topic[i];
+		}
+
+		buffer[index++] = subscribePacket->Qos;
+
+		return index;
+
+
+	}
 	return -1;
 }

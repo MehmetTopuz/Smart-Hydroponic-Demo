@@ -19,8 +19,9 @@ extern "C"
 
 #include <stdint.h>
 
-#define MAX_LENGTH_OF_CLIENT_ID 	50
-
+#define MAX_LENGTH_OF_CLIENT_ID 		50
+#define MAX_LENGTH_OF_TOPIC_NAME 		50
+#define MAX_LENGTH_OF_TOPIC_MESSAGE 	100
 
 typedef enum {
 	CONNECT_PACKET = 0,
@@ -40,6 +41,24 @@ typedef struct{
 	uint16_t ClientIDLength;			// This one will be user defined. Client ID Length.
 	char ClientID[MAX_LENGTH_OF_CLIENT_ID];					// Client ID. User Defined.
 }MQTT_Connect_Packet;
+
+
+typedef struct{
+	uint8_t subscribePacketByte;
+	uint8_t remainLength;
+	uint16_t packetID;
+	uint16_t topicLength;
+	char topic[MAX_LENGTH_OF_TOPIC_NAME];
+	uint8_t Qos;
+}MQTT_Subscribe_Packet;
+
+typedef struct{
+	uint8_t publishPacketByte;
+	uint8_t remainLength;
+	uint16_t topicLength;
+	char topic[MAX_LENGTH_OF_TOPIC_NAME];
+	char message[MAX_LENGTH_OF_TOPIC_MESSAGE];
+}MQTT_Publish_Packet;
 
 
 int32_t mqtt_encode_packet(uint8_t *buffer, void *packet, mqtt_packet_types packetType );

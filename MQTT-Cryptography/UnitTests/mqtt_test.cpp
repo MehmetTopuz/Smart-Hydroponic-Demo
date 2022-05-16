@@ -70,4 +70,81 @@ TEST(MqttTestGroup, ConnectPacketTest)
 }
 
 
+TEST(MqttTestGroup, SubscribePacketTest)
+{
+	char topicName[] = "Testtopic";
+	uint16_t topicLength = strlen(topicName);
+	uint8_t remainLength = (uint8_t)topicLength + 5;
+
+	uint8_t outputBuffer[100] = {0};
+
+	MQTT_Subscribe_Packet subscribePacket;
+
+	subscribePacket.subscribePacketByte = 0x82;
+	subscribePacket.remainLength = remainLength;
+	subscribePacket.packetID = 1;
+	subscribePacket.topicLength = topicLength;
+	strcpy(subscribePacket.topic,topicName);
+	subscribePacket.Qos = 0;
+
+	int32_t numberOfBytes = mqtt_encode_packet(outputBuffer, &subscribePacket, SUBSCRIBE_PACKET);
+
+	LONGS_EQUAL(remainLength+2,numberOfBytes);
+	LONGS_EQUAL(0x82,outputBuffer[0]);
+	LONGS_EQUAL(remainLength,outputBuffer[1]);
+	LONGS_EQUAL(0x0001,(uint16_t)((outputBuffer[2] << 8) + outputBuffer[3]));
+	LONGS_EQUAL(topicLength,(uint16_t)((outputBuffer[4] << 8) + outputBuffer[5]));
+
+	int32_t index = 6;
+
+	for(int16_t i=0;i<topicLength;i++)
+	{
+		BYTES_EQUAL(topicName[i],outputBuffer[index++]);
+	}
+
+	LONGS_EQUAL(0,outputBuffer[index]);
+
+
+}
+
+TEST(MqttTestGroup, PublishPacketTest)
+{
+	char topicName[] = "Testtopic";
+	char message[] = "hello world!";
+
+	uint16_t topicLength = strlen(topicName);
+	uint16_t messageLength = strlen(message);
+	uint8_t remainLength = (uint8_t)topicLength+ (uint8_t)messageLength;
+
+	uint8_t outputBuffer[100] = {0};
+
+	MQTT_Publish_Packet publishPacket = {0};
+
+	publishPacket.publishPacketByte = 0x30;
+	publishPacket.remainLength = remainLength;
+	publishPacket.topicLength = topicLength;
+	strcpy(publishPacket.topic,topicName);
+	strcpy(publishPacket.message,message);
+
+	int32_t numberOfBytes = mqtt_encode_packet(outputBuffer, &publishPacket, PUBLISH_PACKET);
+
+	LONGS_EQUAL(remainLength+2,numberOfBytes);
+	LONGS_EQUAL(0x30,outputBuffer[0]);
+	LONGS_EQUAL(remainLength,outputBuffer[1]);
+	LONGS_EQUAL(topicLength,(uint16_t)((outputBuffer[2] << 8) + outputBuffer[3]));
+
+	int32_t index = 4;
+
+	for(int16_t i=0;i<topicLength;i++)
+	{
+		BYTES_EQUAL(topicName[i],outputBuffer[index++]);
+	}
+
+	for(int16_t i=0;i<messageLength;i++)
+	{
+		BYTES_EQUAL(message[i],outputBuffer[index++]);
+	}
+
+
+}
 
