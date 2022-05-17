@@ -72,5 +72,33 @@ int32_t mqtt_encode_packet(uint8_t *buffer, void *packet, mqtt_packet_types pack
 
 
 	}
+	else if(packetType == PUBLISH_PACKET)
+	{
+		int32_t index = 0;
+
+		MQTT_Publish_Packet *publishPacket = (MQTT_Publish_Packet*)packet;
+
+		buffer[index++] = publishPacket->publishPacketByte;
+		buffer[index++] = publishPacket->remainLength;
+		buffer[index++] = publishPacket->topicLength >> 8;
+		buffer[index++] = publishPacket->topicLength & 0xFF;
+
+		for(uint16_t i=0;i<publishPacket->topicLength;i++)
+		{
+			if(i == MAX_LENGTH_OF_TOPIC_NAME)
+				return -1;
+
+			buffer[index++] = publishPacket->topic[i];
+		}
+		for(uint16_t i=0; i< strlen(publishPacket->message);i++)
+		{
+			if(i == MAX_LENGTH_OF_TOPIC_MESSAGE)
+				return -1;
+
+			buffer[index++] = publishPacket->message[i];
+		}
+		return index;
+	}
+
 	return -1;
 }

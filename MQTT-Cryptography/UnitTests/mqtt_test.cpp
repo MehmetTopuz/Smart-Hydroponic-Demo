@@ -114,7 +114,7 @@ TEST(MqttTestGroup, PublishPacketTest)
 
 	uint16_t topicLength = strlen(topicName);
 	uint16_t messageLength = strlen(message);
-	uint8_t remainLength = (uint8_t)topicLength+ (uint8_t)messageLength;
+	uint8_t remainLength = (uint8_t)topicLength+ (uint8_t)messageLength + 2;
 
 	uint8_t outputBuffer[100] = {0};
 
