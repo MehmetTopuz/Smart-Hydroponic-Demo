@@ -21,6 +21,8 @@
 /* Private Variables ------------------------------------------------------------------*/
 static Esp_Init_Typedef ESP8266;
 
+RingBuffer* rx_buffer;			// uart ring buffer structure
+
 /* Functions ------------------------------------------------------------------*/
 
 /**
@@ -34,7 +36,7 @@ static Esp_Init_Typedef ESP8266;
  * @retval	1 : There is no error. Initializing is successful.
  * @retval -1 : There is an error caused by function pointers or memory allocation.
  */
-int32_t ESP_Init(void 		(*UART_Transmit)(uint8_t*),
+int32_t ESP_Init(void 		(*UART_Transmit)(uint8_t*,size_t),
 			 	 uint8_t 	(*UART_Receive)(void),
 				 uint32_t 	(*getTick)(void),
 				 uint32_t	UART_Buffer_Size)
@@ -66,10 +68,10 @@ int32_t ESP_Init(void 		(*UART_Transmit)(uint8_t*),
  * @param 	cmd is a string containing the AT command.
  * @retval	None.
  */
-void Send_AT_Command(char *cmd)
+void Send_AT_Command(char *cmd,size_t size)
 {
 
-	ESP8266.UART_Transmit((uint8_t*)cmd);
+	ESP8266.UART_Transmit((uint8_t*)cmd,size);
 }
 /**
  * @brief 	This function is used to pass the UART receive data to the ring buffer. User should use
@@ -213,7 +215,7 @@ Status Command_Process(char **commandArray, char **responseArray, uint8_t number
 	{
 		if(commandFlag)
 		{
-			Send_AT_Command(commandArray[currentCommand]);
+			Send_AT_Command(commandArray[currentCommand],strlen(commandArray[currentCommand]));
 			commandFlag = 0;
 		}
 			response = Wait_Response(responseArray[currentCommand], TIMEOUT);
@@ -268,7 +270,7 @@ Status Command_Process(char **commandArray, char **responseArray, uint8_t number
  * @retval	TIMEOUT_ERROR	:It returns TIMEOUT_ERROR when timeout occurs. Default timeout is 5000 ms.
  * @retval	IDLE			:If there is not a string in the buffer and timeout does not occur yet, it returns IDLE.
  */
-Status Connect_TCP_Server(char* ip, char* port)
+Status Connect_TCP_Server(const char* ip, const char* port)
 {
 	Status response_state = IDLE;
 
@@ -284,7 +286,7 @@ Status Connect_TCP_Server(char* ip, char* port)
 		AT_RESPONSE_OK
 	};
 
-	char wifi_buffer[100];
+	char wifi_buffer[100] ={0};
 
 	sprintf(wifi_buffer,"%s\"%s\",%s\r\n",AT_CIPSTART_TCP,ip,port);
 
@@ -352,6 +354,51 @@ Status Send_TCP_Message(char* message)
 
 }
 
+Status Send_TCP_Bytes(uint8_t* buffer, size_t size)
+{
+
+	static int32_t isFirstCall = 0,commandCount=0;
+	Status response = IDLE;
+	char cipSendBuffer[50];
+
+	int32_t length = sprintf(cipSendBuffer,"%s%d\r\n",AT_CIPSEND,size);
+
+	char *response_buffer[2] =
+	{
+			AT_RESPONSE_GREATER_THAN,
+			AT_RESPONSE_SEND_OK
+	};
+
+
+	if(!isFirstCall)
+	{
+		Send_AT_Command(cipSendBuffer, length);
+
+		isFirstCall = 1;
+	}
+
+	response = Wait_Response(response_buffer[commandCount], TIMEOUT);
+
+if(response == FOUND)
+	{
+		if(!commandCount)
+		{
+			Send_AT_Command(buffer, size);
+			commandCount++;
+			response = IDLE;
+		}
+		else
+		{
+			commandCount = 0;
+			isFirstCall = 0;
+			response = STATUS_OK;
+		}
+
+	}
+
+	return response;
+
+}
 /**
  * @brief 	This function reads message if there is a message in the buffer received from the TCP/IP server.
  * @param 	receviedMessage : If a message is received, it is assigned to receivedMessage.

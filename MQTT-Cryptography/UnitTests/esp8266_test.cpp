@@ -12,11 +12,14 @@
 
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"
-#include "esp8266.h"
-#include "ring_buffer.h"
+
 #include <stdio.h>
 #include <string.h>
 
+#include "esp8266.h"
+#include "ring_buffer.h"
+
+extern RingBuffer* rx_buffer;;
 /* Test functions of the ring buffer-----------------------------------------------------------------------*/
 TEST_GROUP(RingBuffer_Test_Group)
 {
@@ -139,10 +142,10 @@ TEST(RingBuffer_Test_Group, CapacityTest)
 
 /* Mpck functions-----------------------------------------------------------------------*/
 
-void UART_Transmit_Fake(uint8_t* data)
+void UART_Transmit_Fake(uint8_t* data, size_t size)
 {
 
-	mock().actualCall("UART_Transmit_Fake").withStringParameter("data", (char*)data);
+	mock().actualCall("UART_Transmit_Fake").withStringParameter("data", (char*)data).withIntParameter("size", size);
 
 }
 uint8_t UART_Receive_Fake(void)
@@ -162,7 +165,7 @@ uint32_t getTick_Fake(void)
 	return time;
 }
 
-void (*transmit)(uint8_t*);
+void (*transmit)(uint8_t*,size_t);
 
 
 /* Test functions of the ring buffer-----------------------------------------------------------------------*/
@@ -209,11 +212,11 @@ TEST(EspDriver_Test_Group, Esp_Init_Test)
 
 TEST(EspDriver_Test_Group, Send_AT_Command_Test)
 {
-	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", "Test");  // UART_Transmit_Fake function waits "Test" string.
-	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", "AT\r\n");
+	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", "Test").withIntParameter("size", strlen("Test"));  // UART_Transmit_Fake function waits "Test" string.
+	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", "AT\r\n").withIntParameter("size", strlen("AT\r\n"));
 
-	Send_AT_Command((char*)"Test");
-	Send_AT_Command((char*)"AT\r\n");
+	Send_AT_Command((char*)"Test",strlen("Test"));
+	Send_AT_Command((char*)"AT\r\n",strlen("AT\r\n"));
 
 	// There is no assertion macro here because the function returns nothing.
 	// Mocking library checks if the function has been called.
@@ -293,7 +296,7 @@ TEST(EspDriver_Test_Group, Connect_Wifi_Timeout_Test)
 {
 	Status response = TIMEOUT_ERROR;
 
-	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data",AT_CWMODE_STATION);
+	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data",AT_CWMODE_STATION).withIntParameter("size", strlen(AT_CWMODE_STATION));
 
 	while(1)
 	{
@@ -329,7 +332,7 @@ TEST(EspDriver_Test_Group, Connect_Wifi_Error_Test)
 
 	for(int i=0;i<3;i++)
 	{
-		mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", fake_tx_buffer[i]);
+		mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", fake_tx_buffer[i]).withIntParameter("size", strlen(fake_tx_buffer[i]));
 	}
 	Status response = IDLE;
 	int i = 0;
@@ -373,7 +376,7 @@ TEST(EspDriver_Test_Group, Connect_Wifi_Test)
 
 	for(int i=0;i<3;i++)
 	{
-		mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", fake_tx_buffer[i]);
+		mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", fake_tx_buffer[i]).withIntParameter("size", strlen(fake_tx_buffer[i]));
 	}
 	Status response;
 	int i = 0;
@@ -404,7 +407,7 @@ TEST(EspDriver_Test_Group, Disconnect_Wifi_Timeout_Test)
 {
 	Status response;
 
-	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", AT_CWQAP);
+	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", AT_CWQAP).withIntParameter("size", strlen(AT_CWQAP));
 
 	while(1)
 	{
@@ -422,7 +425,7 @@ TEST(EspDriver_Test_Group, Disconnect_Wifi_Test)
 {
 	Status response;
 
-	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", AT_CWQAP);
+	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", AT_CWQAP).withIntParameter("size", strlen(AT_CWQAP));
 
 	while(1)
 	{
@@ -459,7 +462,7 @@ TEST(EspDriver_Test_Group, Command_Process_Test)
 
 	for(int i=0;i<3;i++)
 	{
-		mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", fake_command_buffer[i]);
+		mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", fake_command_buffer[i]).withIntParameter("size", strlen(fake_command_buffer[i]));
 	}
 	Status response;
 	int i = 0;
@@ -502,7 +505,7 @@ TEST(EspDriver_Test_Group, Connect_TCP_Test)
 
 	for(int i=0;i<2;i++)
 	{
-		mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", fake_command_buffer[i]);
+		mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", fake_command_buffer[i]).withIntParameter("size", strlen(fake_command_buffer[i]));
 	}
 
 	Status response;
@@ -540,7 +543,7 @@ TEST(EspDriver_Test_Group, Connect_TCP_Timeout_Test)
 		(char*)"AT+CIPSTART=\"TCP\",\"192.168.1.1\",80\r\n"
 	};
 
-	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", fake_command_buffer[0]);
+	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", fake_command_buffer[0]).withIntParameter("size", strlen(fake_command_buffer[0]));
 
 
 	Status response;
@@ -573,7 +576,7 @@ TEST(EspDriver_Test_Group, Connect_TCP_Error_Test)
 
 	for(int i=0;i<2;i++)
 	{
-		mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", fake_command_buffer[i]);
+		mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", fake_command_buffer[i]).withIntParameter("size", strlen(fake_command_buffer[i]));
 	}
 
 	Status response;
@@ -605,7 +608,7 @@ TEST(EspDriver_Test_Group, Disconnect_TCP_Test)
 {
 	Status response;
 
-	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", AT_CIPCLOSE);
+	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", AT_CIPCLOSE).withIntParameter("size", strlen(AT_CIPCLOSE));
 
 	while(1)
 	{
@@ -636,8 +639,8 @@ TEST(EspDriver_Test_Group, Send_TCP_Message_Test)
 	  AT_RESPONSE_SEND_OK,
 	};
 
-	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", "AT+CIPSEND=11\r\n");
-	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", "Hello World");
+	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", "AT+CIPSEND=11\r\n").withIntParameter("size", strlen("AT+CIPSEND=11\r\n"));
+	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", "Hello World").withIntParameter("size", strlen("Hello World"));
 	while(1)
 	{
 		response = Send_TCP_Message((char*)"Hello World");
@@ -729,7 +732,43 @@ TEST(EspDriver_Test_Group, Wait_TCP_Message_Test)
 
 }
 
+TEST(EspDriver_Test_Group, Send_TCP_Bytes_Test)
+{
+	uint8_t bytesToSend[5] = {0x00,0x0A,0x45,0x02,0x04};
+	char *response_buffer[2] =
+	{
+			AT_RESPONSE_GREATER_THAN,
+			AT_RESPONSE_SEND_OK
+	};
 
+	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", "AT+CIPSEND=5\r\n").withIntParameter("size", strlen("AT+CIPSEND=5\r\n"));
+	mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", (char*)bytesToSend).withIntParameter("size", 5);
+	Status response = IDLE;
+	int i=0;
+	while(1){
+
+		response = Send_TCP_Bytes(bytesToSend, 5);
+
+		if(response != IDLE)
+		{
+			break;
+		}
+
+		if(i<2)
+		{
+			for(int j=0;j<(int)strlen(response_buffer[i]);j++)
+			{
+				mock().expectOneCall("UART_Receive_Fake").andReturnValue((int)response_buffer[i][j]);
+				ESP_UART_ReceiveHandler();
+			}
+			i++;
+		}
+
+	}
+
+	LONGS_EQUAL(STATUS_OK,response);
+
+}
 
 
 

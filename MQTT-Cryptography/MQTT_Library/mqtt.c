@@ -102,3 +102,46 @@ int32_t mqtt_encode_packet(uint8_t *buffer, void *packet, mqtt_packet_types pack
 
 	return -1;
 }
+
+Status mqtt_connect_broker(const char* ip,const char* port, const char* clientID){
+
+	MQTT_Connect_Packet packet = {0};
+	uint16_t lengthOfClientID = strlen(clientID);
+	uint8_t remainLength = lengthOfClientID + 12;
+
+	packet.ConnectByte = 0x10;
+	packet.ConnectByte = 0x10;
+	packet.RemainLength = remainLength;
+	packet.ProtocolNameLength = 0x0004;
+	strcpy(packet.ProtocolName,"MQTT");
+	packet.Level = 0x04;
+	packet.Flag = 0x02;
+	packet.KeepAlive = MQTT_KEEP_ALIVE;
+	packet.ClientIDLength = lengthOfClientID;
+	strcpy(packet.ClientID,clientID);
+
+	uint8_t packetBuffer[100] = {0};
+
+	int32_t numberOfBytes = mqtt_encode_packet(packetBuffer, &packet, CONNECT_PACKET);
+
+	if(numberOfBytes < 0)
+		return STATUS_ERROR;
+
+	Status tcpConnection = IDLE;
+
+	 tcpConnection = Connect_TCP_Server(ip, port);
+
+	if(tcpConnection != IDLE)
+	{
+		if(tcpConnection == STATUS_OK)	// connection is successful
+		{
+			return Send_TCP_Bytes(packetBuffer,numberOfBytes);
+
+		}
+		else
+			return tcpConnection;
+	}
+	else
+		return tcpConnection;
+
+}

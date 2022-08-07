@@ -21,7 +21,9 @@ UnitTests/mqtt_test.o: ../UnitTests/mqtt_test.cpp \
  C:/Users/Topuz/STM32CubeIDE/workspace_1.6.0/MQTT/MQTT-Cryptography/UnitTests/include/CppUTestExt/MockExpectedCallsList.h \
  C:/Users/Topuz/STM32CubeIDE/workspace_1.6.0/MQTT/MQTT-Cryptography/UnitTests/include/CppUTestExt/MockCheckedExpectedCall.h \
  C:/Users/Topuz/STM32CubeIDE/workspace_1.6.0/MQTT/MQTT-Cryptography/UnitTests/include/CppUTestExt/MockExpectedCall.h \
- C:/Users/Topuz/STM32CubeIDE/workspace_1.6.0/MQTT/MQTT-Cryptography/MQTT_Library/mqtt.h
+ C:/Users/Topuz/STM32CubeIDE/workspace_1.6.0/MQTT/MQTT-Cryptography/MQTT_Library/mqtt.h \
+ C:/Users/Topuz/STM32CubeIDE/workspace_1.6.0/MQTT/MQTT-Cryptography/ESP8266_Driver/esp8266.h \
+ C:/Users/Topuz/STM32CubeIDE/workspace_1.6.0/MQTT/MQTT-Cryptography/RingBuffer/ring_buffer.h
 
 C:/Users/Topuz/STM32CubeIDE/workspace_1.6.0/MQTT/MQTT-Cryptography/UnitTests/include/CppUTest/TestHarness.h:
 
@@ -68,3 +70,7 @@ C:/Users/Topuz/STM32CubeIDE/workspace_1.6.0/MQTT/MQTT-Cryptography/UnitTests/inc
 C:/Users/Topuz/STM32CubeIDE/workspace_1.6.0/MQTT/MQTT-Cryptography/UnitTests/include/CppUTestExt/MockExpectedCall.h:
 
 C:/Users/Topuz/STM32CubeIDE/workspace_1.6.0/MQTT/MQTT-Cryptography/MQTT_Library/mqtt.h:
+
+C:/Users/Topuz/STM32CubeIDE/workspace_1.6.0/MQTT/MQTT-Cryptography/ESP8266_Driver/esp8266.h:
+
+C:/Users/Topuz/STM32CubeIDE/workspace_1.6.0/MQTT/MQTT-Cryptography/RingBuffer/ring_buffer.h:

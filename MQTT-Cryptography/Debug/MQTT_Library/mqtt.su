@@ -1,1 +1,2 @@
 mqtt.c:15:9:mqtt_encode_packet	72	static
+mqtt.c:106:8:mqtt_connect_broker	200	static

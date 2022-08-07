@@ -21,7 +21,7 @@ extern "C"
 /* Includes ------------------------------------------------------------------*/
 
 #include "ring_buffer.h"
-
+#include <stdio.h>
 /* AT commands definitions ------------------------------------------------------------------*/
 
 #define AT_CWMODE_STATION			"AT+CWMODE=1\r\n"
@@ -40,14 +40,14 @@ extern "C"
 
 #define TIMEOUT						10000UL	// millisecond
 
-RingBuffer* rx_buffer;			// uart ring buffer structure
+
 
 /**
  * @brief ESP initialize structure definition
  */
 typedef struct
 {
-    void		(*UART_Transmit)(uint8_t*);			/*!< Driver uses this function pointer to transmit messages over UART.*/
+    void		(*UART_Transmit)(uint8_t*,size_t);			/*!< Driver uses this function pointer to transmit messages over UART.*/
     uint8_t		(*UART_Receive)(void);				/*!< Driver uses this function pointer to receive messages from UART.*/
     uint32_t	(*getTick)(void);					/*!< Driver uses this function pointer to get tick count when calculating timeout.*/
 
@@ -76,7 +76,7 @@ typedef enum
  * @retval	1 : There is no error. Initializing is successful.
  * @retval -1 : There is an error caused by function pointers or memory allocation.
  */
-int32_t ESP_Init(void (*UART_Transmit)(uint8_t*),
+int32_t ESP_Init(void (*UART_Transmit)(uint8_t*,size_t),
 			 uint8_t (*UART_Receive)(void),
 			 uint32_t (*getTick)(void),
 			 uint32_t UART_Buffer_Size);
@@ -86,7 +86,7 @@ int32_t ESP_Init(void (*UART_Transmit)(uint8_t*),
  * @param 	cmd is a string containing the AT command.
  * @retval	None.
  */
-void Send_AT_Command(char *cmd);
+void Send_AT_Command(char *cmd,size_t size);
 /**
  * @brief 	This function is used to pass the UART receive data to the ring buffer. User should use
  * 			this function in the  UART ISR.
@@ -155,7 +155,7 @@ Status Command_Process(char **commandArray, char **responseArray, uint8_t number
  * @retval	TIMEOUT_ERROR	:It returns TIMEOUT_ERROR when timeout occurs. Default timeout is 5000 ms.
  * @retval	IDLE			:If there is not a string in the buffer and timeout does not occur yet, it returns IDLE.
  */
-Status Connect_TCP_Server(char* ip, char* port);
+Status Connect_TCP_Server(const char* ip, const char* port);
 
 /**
  * @brief 	This function handles AT commands to disconnect TCP server.
@@ -183,6 +183,9 @@ Status Send_TCP_Message(char* message);
  * @retval	STATUS_OK		:The message has been read successfully.
  * @retval	STATUS_ERROR	:There is no TCP message in the buffer.
  */
+Status Send_TCP_Bytes(uint8_t* buffer, size_t size);
+
+
 Status Read_TCP_Message(char* receivedMessage);
 
 /**

@@ -18,6 +18,10 @@ extern "C"
 #endif
 
 #include <stdint.h>
+#include "esp8266.h"
+
+
+#define MQTT_KEEP_ALIVE					(uint16_t)60
 
 #define MAX_LENGTH_OF_CLIENT_ID 		50
 #define MAX_LENGTH_OF_TOPIC_NAME 		50
@@ -29,6 +33,7 @@ typedef enum {
 	PUBLISH_PACKET
 
 }mqtt_packet_types;
+
 
 typedef struct{
 	uint8_t ConnectByte;					// Connect and Remain Length Bytes(2byte) named as "Fixed Header".
@@ -63,6 +68,7 @@ typedef struct{
 
 int32_t mqtt_encode_packet(uint8_t *buffer, void *packet, mqtt_packet_types packetType );
 
+Status mqtt_connect_broker(const char* ip,const char* port, const char* clientID);
 
 #ifdef __cplusplus
 }
