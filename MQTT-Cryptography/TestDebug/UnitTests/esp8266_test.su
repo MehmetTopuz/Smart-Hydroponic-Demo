@@ -1,3 +1,5 @@
+MockActualCall.h:59:21:MockActualCall& MockActualCall::withParameter(const SimpleString&, const unsigned char*, size_t)	32	static
+MockExpectedCall.h:59:23:MockExpectedCall& MockExpectedCall::withParameter(const SimpleString&, const unsigned char*, size_t)	32	static
 esp8266_test.cpp:29:7:virtual void TEST_GROUP_CppUTestGroupRingBuffer_Test_Group::setup()	16	static
 esp8266_test.cpp:36:7:virtual void TEST_GROUP_CppUTestGroupRingBuffer_Test_Group::teardown()	16	static
 esp8266_test.cpp:24:1:TEST_GROUP_CppUTestGroupRingBuffer_Test_Group::TEST_GROUP_CppUTestGroupRingBuffer_Test_Group()	16	static
@@ -251,6 +253,6 @@ esp8266_test.cpp:44:1:TEST_RingBuffer_Test_Group_InitTest_TestShell::~TEST_RingB
 esp8266_test.cpp:44:1:virtual TEST_RingBuffer_Test_Group_InitTest_TestShell::~TEST_RingBuffer_Test_Group_InitTest_TestShell()	16	static
 esp8266_test.cpp:44:1:TEST_RingBuffer_Test_Group_InitTest_Test::~TEST_RingBuffer_Test_Group_InitTest_Test()	16	static
 esp8266_test.cpp:44:1:virtual TEST_RingBuffer_Test_Group_InitTest_Test::~TEST_RingBuffer_Test_Group_InitTest_Test()	16	static
-esp8266_test.cpp:771:1:void __static_initialization_and_destruction_0(int, int)	24	static
-esp8266_test.cpp:771:1:cpp)	8	static
-esp8266_test.cpp:771:1:cpp)	8	static
+esp8266_test.cpp:773:1:void __static_initialization_and_destruction_0(int, int)	24	static
+esp8266_test.cpp:773:1:cpp)	8	static
+esp8266_test.cpp:773:1:cpp)	8	static

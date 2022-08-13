@@ -105,43 +105,54 @@ int32_t mqtt_encode_packet(uint8_t *buffer, void *packet, mqtt_packet_types pack
 
 Status mqtt_connect_broker(const char* ip,const char* port, const char* clientID){
 
-	MQTT_Connect_Packet packet = {0};
-	uint16_t lengthOfClientID = strlen(clientID);
-	uint8_t remainLength = lengthOfClientID + 12;
+	static int isFirstCall = 0;
+	static uint8_t packetBuffer[100] = {0};
+	static int32_t numberOfBytes = 0;
 
-	packet.ConnectByte = 0x10;
-	packet.ConnectByte = 0x10;
-	packet.RemainLength = remainLength;
-	packet.ProtocolNameLength = 0x0004;
-	strcpy(packet.ProtocolName,"MQTT");
-	packet.Level = 0x04;
-	packet.Flag = 0x02;
-	packet.KeepAlive = MQTT_KEEP_ALIVE;
-	packet.ClientIDLength = lengthOfClientID;
-	strcpy(packet.ClientID,clientID);
 
-	uint8_t packetBuffer[100] = {0};
+	if(!isFirstCall){
+		MQTT_Connect_Packet packet = {0};
+		uint16_t lengthOfClientID = strlen(clientID);
+		uint8_t remainLength = lengthOfClientID + 12;
 
-	int32_t numberOfBytes = mqtt_encode_packet(packetBuffer, &packet, CONNECT_PACKET);
+		packet.ConnectByte = 0x10;
+		packet.ConnectByte = 0x10;
+		packet.RemainLength = remainLength;
+		packet.ProtocolNameLength = 0x0004;
+		strcpy(packet.ProtocolName,"MQTT");
+		packet.Level = 0x04;
+		packet.Flag = 0x02;
+		packet.KeepAlive = MQTT_KEEP_ALIVE;
+		packet.ClientIDLength = lengthOfClientID;
+		strcpy(packet.ClientID,clientID);
 
-	if(numberOfBytes < 0)
-		return STATUS_ERROR;
+		numberOfBytes = mqtt_encode_packet(packetBuffer, &packet, CONNECT_PACKET);
 
-	Status tcpConnection = IDLE;
+		if(numberOfBytes < 0)
+			return STATUS_ERROR;
 
-	 tcpConnection = Connect_TCP_Server(ip, port);
+		isFirstCall = 1;
+	}
 
-	if(tcpConnection != IDLE)
-	{
-		if(tcpConnection == STATUS_OK)	// connection is successful
-		{
-			return Send_TCP_Bytes(packetBuffer,numberOfBytes);
-
+	static int state = 0;
+	Status status = IDLE;
+	if(state == 0){
+		status = Connect_TCP_Server(ip, port);
+		if(status == STATUS_OK)
+			state++;
+		else
+			return status;
+	}
+	if(state == 1){
+		status = Send_TCP_Bytes(packetBuffer, numberOfBytes);
+		if(status == STATUS_OK){
+			state = 0;
+			return status;
 		}
 		else
-			return tcpConnection;
+			return status;
 	}
-	else
-		return tcpConnection;
+
+	return STATUS_ERROR;
 
 }

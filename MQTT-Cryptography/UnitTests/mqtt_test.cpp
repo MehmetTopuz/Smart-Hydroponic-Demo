@@ -157,60 +157,60 @@ TEST(MqttTestGroup, PublishPacketTest)
 
 }
 
-//TEST(MqttTestGroup, MqttConnectBrokerTest)
-//{
-//	const char ip[] = "broker.mqttdashboard.com";
-//	const char port[] = "1883";
-//	const char clientID[] = "Topuz";
-//
-//	const char esp_response[4][50] = {
-//			AT_RESPONSE_OK,
-//			AT_RESPONSE_OK,
-//			AT_RESPONSE_GREATER_THAN,
-//			AT_RESPONSE_SEND_OK
-//	};
-//
-//	const char esp_commands[3][60] = {
-//			AT_CIPMUX_SINGLE,
-//			"AT+CIPSTART=\"TCP\",\"broker.mqttdashboard.com\",1883\r\n",
-//			"AT+CIPSEND=19\r\n" // 19 represents the number of bytes to sent.
-//	};
-//
-//	for(int i=0;i<3;i++)
-//	{
-//		mock().expectOneCall("UART_Transmit_Fake").withStringParameter("data", esp_commands[i]).withIntParameter("size", strlen(esp_commands[i]));
-//	}
-//	// mocking connect packet
-//	uint8_t data_buffer[] = {0x10,0x17,0x00,0x04,'M','Q','T','T',0x04,0x02,0x00,0x3C,0x00,0x05,'T','o','p','u','z'};
-//
-//	mock().expectOneCall("UART_Transmit_Fake").withParameter("data",data_buffer,19).withIntParameter("size", 19);
-//
-//
-//	Status status;
-//	int i = 0;
-//	while(1)
-//	{
-//
-//		status = mqtt_connect_broker(ip, port, clientID);
-//
-//		if(status != IDLE)
-//		{
-//			break;
-//		}
-//		if(i<3)
-//		{
-//			for(int j=0;j<(int)strlen(esp_response[i]);j++)
-//			{
-//				mock().expectOneCall("UART_Receive_Fake").andReturnValue((int)esp_response[i][j]);
-//				ESP_UART_ReceiveHandler();
-//			}
-//			i++;
-//		}
-//	}
-//
-//
-//	LONGS_EQUAL(STATUS_OK,status);
-//
-//
-//}
+TEST(MqttTestGroup, MqttConnectBrokerTest)
+{
+	const char ip[] = "broker.mqttdashboard.com";
+	const char port[] = "1883";
+	const char clientID[] = "Topuz";
+
+	const char esp_response[4][50] = {
+			AT_RESPONSE_OK,
+			AT_RESPONSE_OK,
+			AT_RESPONSE_GREATER_THAN,
+			AT_RESPONSE_SEND_OK
+	};
+
+	const char esp_commands[3][60] = {
+			AT_CIPMUX_SINGLE,
+			"AT+CIPSTART=\"TCP\",\"broker.mqttdashboard.com\",1883\r\n",
+			"AT+CIPSEND=19\r\n" // 19 represents the number of bytes to be sent.
+	};
+
+	for(int i=0;i<3;i++)
+	{
+		mock().expectOneCall("UART_Transmit_Fake").withParameter("data", (uint8_t*)esp_commands[i], strlen(esp_commands[i])).withIntParameter("size", strlen(esp_commands[i]));
+	}
+	// mocking connect packet
+	uint8_t data_buffer[] = {0x10,0x11,0x00,0x04,'M','Q','T','T',0x04,0x02,0x00,0x3C,0x00,0x05,'T','o','p','u','z'};
+
+	mock().expectOneCall("UART_Transmit_Fake").withParameter("data",(uint8_t*)data_buffer,19).withIntParameter("size", 19);
+
+
+	Status status;
+	int i = 0;
+	while(1)
+	{
+
+		status = mqtt_connect_broker(ip, port, clientID);
+
+		if(status != IDLE)
+		{
+			break;
+		}
+		if(i<4)
+		{
+			for(int j=0;j<(int)strlen(esp_response[i]);j++)
+			{
+				mock().expectOneCall("UART_Receive_Fake").andReturnValue((int)esp_response[i][j]);
+				ESP_UART_ReceiveHandler();
+			}
+			i++;
+		}
+	}
+
+
+	LONGS_EQUAL(STATUS_OK,status);
+
+
+}
 

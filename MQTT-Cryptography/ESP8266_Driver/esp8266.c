@@ -383,7 +383,7 @@ if(response == FOUND)
 	{
 		if(!commandCount)
 		{
-			Send_AT_Command(buffer, size);
+			Send_AT_Command((char*)buffer, size);
 			commandCount++;
 			response = IDLE;
 		}
@@ -392,9 +392,16 @@ if(response == FOUND)
 			commandCount = 0;
 			isFirstCall = 0;
 			response = STATUS_OK;
+			ringBuffer_flush(rx_buffer);
 		}
 
 	}
+else if( response == STATUS_ERROR)
+{
+	commandCount = 0;
+	isFirstCall = 0;
+	ringBuffer_flush(rx_buffer);
+}
 
 	return response;
 
