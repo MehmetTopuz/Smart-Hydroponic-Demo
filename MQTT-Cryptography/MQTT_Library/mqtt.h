@@ -70,6 +70,8 @@ int32_t mqtt_encode_packet(uint8_t *buffer, void *packet, mqtt_packet_types pack
 
 Status mqtt_connect_broker(const char* ip,const char* port, const char* clientID);
 
+Status mqtt_ping_request(void);
+
 #ifdef __cplusplus
 }
 #endif

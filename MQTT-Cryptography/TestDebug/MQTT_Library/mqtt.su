@@ -1,2 +1,3 @@
 mqtt.c:15:9:mqtt_encode_packet	72	static
 mqtt.c:106:8:mqtt_connect_broker	96	static
+mqtt.c:160:8:mqtt_ping_request	16	static

@@ -156,3 +156,32 @@ Status mqtt_connect_broker(const char* ip,const char* port, const char* clientID
 	return STATUS_ERROR;
 
 }
+
+Status mqtt_ping_request(void){
+
+	Status response = IDLE;
+	uint8_t pingReqPacket[2] = {0xC0, 0x00};
+	uint8_t pingRespacket[2] = {0xC1, 0x00};
+	static int state = 0;
+
+	if(!state){
+		response = Send_TCP_Bytes(pingReqPacket, 2);
+
+		if(response == STATUS_OK){
+			state++;
+		}
+		else
+			return response;
+	}
+	if(state){
+		response = Wait_Response((char*)pingRespacket, TIMEOUT);
+		if(response == FOUND){
+			state = 0;
+			response = STATUS_OK;
+			return response;
+		}
+
+	}
+
+	return response;
+}

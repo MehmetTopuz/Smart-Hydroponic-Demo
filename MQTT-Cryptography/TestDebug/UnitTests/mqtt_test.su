@@ -20,6 +20,14 @@ mqtt_test.cpp:160:1:TEST_MqttTestGroup_MqttConnectBrokerTest_Test::TEST_MqttTest
 mqtt_test.cpp:160:1:virtual Utest* TEST_MqttTestGroup_MqttConnectBrokerTest_TestShell::createTest()	24	static
 mqtt_test.cpp:160:1:TEST_MqttTestGroup_MqttConnectBrokerTest_TestShell::TEST_MqttTestGroup_MqttConnectBrokerTest_TestShell()	16	static
 mqtt_test.cpp:160:1:virtual void TEST_MqttTestGroup_MqttConnectBrokerTest_Test::testBody()	592	static
+mqtt_test.cpp:216:1:TEST_MqttTestGroup_MqttPingRequestTest_Test::TEST_MqttTestGroup_MqttPingRequestTest_Test()	16	static
+mqtt_test.cpp:216:1:virtual Utest* TEST_MqttTestGroup_MqttPingRequestTest_TestShell::createTest()	24	static
+mqtt_test.cpp:216:1:TEST_MqttTestGroup_MqttPingRequestTest_TestShell::TEST_MqttTestGroup_MqttPingRequestTest_TestShell()	16	static
+mqtt_test.cpp:216:1:virtual void TEST_MqttTestGroup_MqttPingRequestTest_Test::testBody()	192	static
+mqtt_test.cpp:216:1:TEST_MqttTestGroup_MqttPingRequestTest_TestShell::~TEST_MqttTestGroup_MqttPingRequestTest_TestShell()	16	static
+mqtt_test.cpp:216:1:virtual TEST_MqttTestGroup_MqttPingRequestTest_TestShell::~TEST_MqttTestGroup_MqttPingRequestTest_TestShell()	16	static
+mqtt_test.cpp:216:1:TEST_MqttTestGroup_MqttPingRequestTest_Test::~TEST_MqttTestGroup_MqttPingRequestTest_Test()	16	static
+mqtt_test.cpp:216:1:virtual TEST_MqttTestGroup_MqttPingRequestTest_Test::~TEST_MqttTestGroup_MqttPingRequestTest_Test()	16	static
 mqtt_test.cpp:160:1:TEST_MqttTestGroup_MqttConnectBrokerTest_TestShell::~TEST_MqttTestGroup_MqttConnectBrokerTest_TestShell()	16	static
 mqtt_test.cpp:160:1:virtual TEST_MqttTestGroup_MqttConnectBrokerTest_TestShell::~TEST_MqttTestGroup_MqttConnectBrokerTest_TestShell()	16	static
 mqtt_test.cpp:160:1:TEST_MqttTestGroup_MqttConnectBrokerTest_Test::~TEST_MqttTestGroup_MqttConnectBrokerTest_Test()	16	static
@@ -36,6 +44,6 @@ mqtt_test.cpp:42:1:TEST_MqttTestGroup_ConnectPacketTest_TestShell::~TEST_MqttTes
 mqtt_test.cpp:42:1:virtual TEST_MqttTestGroup_ConnectPacketTest_TestShell::~TEST_MqttTestGroup_ConnectPacketTest_TestShell()	16	static
 mqtt_test.cpp:42:1:TEST_MqttTestGroup_ConnectPacketTest_Test::~TEST_MqttTestGroup_ConnectPacketTest_Test()	16	static
 mqtt_test.cpp:42:1:virtual TEST_MqttTestGroup_ConnectPacketTest_Test::~TEST_MqttTestGroup_ConnectPacketTest_Test()	16	static
-mqtt_test.cpp:215:1:void __static_initialization_and_destruction_0(int, int)	24	static
-mqtt_test.cpp:215:1:cpp)	8	static
-mqtt_test.cpp:215:1:cpp)	8	static
+mqtt_test.cpp:262:1:void __static_initialization_and_destruction_0(int, int)	24	static
+mqtt_test.cpp:262:1:cpp)	8	static
+mqtt_test.cpp:262:1:cpp)	8	static

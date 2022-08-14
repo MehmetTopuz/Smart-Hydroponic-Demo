@@ -211,6 +211,52 @@ TEST(MqttTestGroup, MqttConnectBrokerTest)
 
 	LONGS_EQUAL(STATUS_OK,status);
 
-
 }
 
+TEST(MqttTestGroup, MqttPingRequestTest)
+{
+	// pingreq packet size is two bytes [ 0xC0, 0x00]
+	uint8_t pingReqPacket[2] = {0xC0, 0x00};
+	// pingresp packet size is two bytes [ 0xC1, 0x00]
+	uint8_t pingRespPacket[2] = {0xC1, 0x00};
+
+	char *response_buffer[2] =
+	{
+			AT_RESPONSE_GREATER_THAN,
+			AT_RESPONSE_SEND_OK
+	};
+
+	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", (uint8_t*)"AT+CIPSEND=2\r\n", strlen("AT+CIPSEND=2\r\n")).withIntParameter("size", strlen("AT+CIPSEND=2\r\n"));
+	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", pingReqPacket, 2).withIntParameter("size", 2);
+
+	Status response = IDLE;
+	int i= 0;
+	while(1){
+
+		response = mqtt_ping_request();
+
+		if(response != IDLE)
+		{
+			break;
+		}
+		if(i<2)
+		{
+			for(int j=0;j<(int)strlen(response_buffer[i]);j++)
+			{
+				mock().expectOneCall("UART_Receive_Fake").andReturnValue((int)response_buffer[i][j]);
+				ESP_UART_ReceiveHandler();
+			}
+			i++;
+		}
+		else{
+			mock().expectOneCall("UART_Receive_Fake").andReturnValue((int)pingRespPacket[0]);
+			ESP_UART_ReceiveHandler();
+			mock().expectOneCall("UART_Receive_Fake").andReturnValue((int)pingRespPacket[1]);
+			ESP_UART_ReceiveHandler();
+		}
+
+	}
+
+	LONGS_EQUAL(STATUS_OK,response);
+
+}
