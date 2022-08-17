@@ -222,8 +222,8 @@ TEST(MqttTestGroup, MqttPingRequestTest)
 
 	char *response_buffer[2] =
 	{
-			AT_RESPONSE_GREATER_THAN,
-			AT_RESPONSE_SEND_OK
+			(char*)AT_RESPONSE_GREATER_THAN,
+			(char*)AT_RESPONSE_SEND_OK
 	};
 
 	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", (uint8_t*)"AT+CIPSEND=2\r\n", strlen("AT+CIPSEND=2\r\n")).withIntParameter("size", strlen("AT+CIPSEND=2\r\n"));
@@ -259,5 +259,48 @@ TEST(MqttTestGroup, MqttPingRequestTest)
 
 	LONGS_EQUAL(STATUS_OK,response);
 
+
+}
+
+TEST(MqttTestGroup, MqttPublishTest)
+{
+	const char payload[] = "Test message";
+	const char topic[] = "test/topic";
+
+
+	int topicLength = strlen(topic);
+
+	char *response_buffer[2] =
+	{
+			(char*)AT_RESPONSE_GREATER_THAN,
+			(char*)AT_RESPONSE_SEND_OK
+	};
+	uint8_t remainLength = strlen(payload) + topicLength + 2;
+	uint8_t publishPacket[] = {0x30,remainLength,(uint8_t)(topicLength >> 8),(uint8_t)(topicLength & 0xff),'t','e','s','t','/','t','o','p','i','c','T','e','s','t',' ','m','e','s','s','a','g','e'}; // buradan devam et
+	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", (uint8_t*)"AT+CIPSEND=26\r\n", strlen("AT+CIPSEND=26\r\n")).withIntParameter("size", strlen("AT+CIPSEND=26\r\n"));
+	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", publishPacket, 26).withIntParameter("size", 26);
+
+	int i=0;
+	Status response = IDLE;
+
+	while(1){
+		response = mqtt_publish_message(topic, (uint8_t*)payload, strlen(payload));
+
+		if(response != IDLE)
+		{
+			break;
+		}
+		if(i<2){
+			for(int j=0;j<(int)strlen(response_buffer[i]);j++)
+			{
+				mock().expectOneCall("UART_Receive_Fake").andReturnValue((int)response_buffer[i][j]);
+				ESP_UART_ReceiveHandler();
+			}
+			i++;
+		}
+
+	}
+
+	LONGLONGS_EQUAL(STATUS_OK,response);
 
 }

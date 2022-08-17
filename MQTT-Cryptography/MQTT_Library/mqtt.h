@@ -22,6 +22,8 @@ extern "C"
 
 
 #define MQTT_KEEP_ALIVE					(uint16_t)60
+#define MQTT_PING_REQUEST				(uint8_t)0xC0
+#define MQTT_PING_RESPONSE				(uint8_t)0xC1
 
 #define MAX_LENGTH_OF_CLIENT_ID 		50
 #define MAX_LENGTH_OF_TOPIC_NAME 		50
@@ -71,6 +73,8 @@ int32_t mqtt_encode_packet(uint8_t *buffer, void *packet, mqtt_packet_types pack
 Status mqtt_connect_broker(const char* ip,const char* port, const char* clientID);
 
 Status mqtt_ping_request(void);
+
+Status mqtt_publish_message(const char* topic, const uint8_t* payload, size_t size);
 
 #ifdef __cplusplus
 }

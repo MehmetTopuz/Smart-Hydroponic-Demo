@@ -160,8 +160,8 @@ Status mqtt_connect_broker(const char* ip,const char* port, const char* clientID
 Status mqtt_ping_request(void){
 
 	Status response = IDLE;
-	uint8_t pingReqPacket[2] = {0xC0, 0x00};
-	uint8_t pingRespacket[2] = {0xC1, 0x00};
+	uint8_t pingReqPacket[2] = {MQTT_PING_REQUEST, 0x00};
+	uint8_t pingRespacket[2] = {MQTT_PING_RESPONSE, 0x00};
 	static int state = 0;
 
 	if(!state){
@@ -184,4 +184,9 @@ Status mqtt_ping_request(void){
 	}
 
 	return response;
+}
+
+Status mqtt_publish_message(const char* topic, const uint8_t* payload, size_t size){
+
+	return STATUS_ERROR;
 }
