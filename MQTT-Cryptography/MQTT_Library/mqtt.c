@@ -190,3 +190,10 @@ Status mqtt_publish_message(const char* topic, const uint8_t* payload, size_t si
 
 	return STATUS_ERROR;
 }
+
+Status mqtt_subcribe(const char* topic){
+
+	return STATUS_ERROR;
+
+	// handle SUBACK packet later.
+}

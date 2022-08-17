@@ -276,7 +276,7 @@ TEST(MqttTestGroup, MqttPublishTest)
 			(char*)AT_RESPONSE_SEND_OK
 	};
 	uint8_t remainLength = strlen(payload) + topicLength + 2;
-	uint8_t publishPacket[] = {0x30,remainLength,(uint8_t)(topicLength >> 8),(uint8_t)(topicLength & 0xff),'t','e','s','t','/','t','o','p','i','c','T','e','s','t',' ','m','e','s','s','a','g','e'}; // buradan devam et
+	uint8_t publishPacket[] = {0x30,remainLength,(uint8_t)(topicLength >> 8),(uint8_t)(topicLength & 0xff),'t','e','s','t','/','t','o','p','i','c','T','e','s','t',' ','m','e','s','s','a','g','e'};
 	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", (uint8_t*)"AT+CIPSEND=26\r\n", strlen("AT+CIPSEND=26\r\n")).withIntParameter("size", strlen("AT+CIPSEND=26\r\n"));
 	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", publishPacket, 26).withIntParameter("size", 26);
 
@@ -303,4 +303,45 @@ TEST(MqttTestGroup, MqttPublishTest)
 
 	LONGLONGS_EQUAL(STATUS_OK,response);
 
+}
+
+TEST(MqttTestGroup, MqttSubscribeTest)
+{
+	const char topic[] = "test/topic";
+
+	int topicLength = strlen(topic);
+	uint8_t Qos= 0, packageID = 1;
+
+	char *response_buffer[2] =
+	{
+			(char*)AT_RESPONSE_GREATER_THAN,
+			(char*)AT_RESPONSE_SEND_OK
+	};
+	uint8_t remainLength = topicLength + 5;
+	uint8_t publishPacket[] = {0x82,remainLength,0x00,packageID,(uint8_t)(topicLength >> 8),(uint8_t)(topicLength & 0xff),'t','e','s','t','/','t','o','p','i','c',Qos};
+	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", (uint8_t*)"AT+CIPSEND=17\r\n", strlen("AT+CIPSEND=17\r\n")).withIntParameter("size", strlen("AT+CIPSEND=17\r\n"));
+	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", publishPacket, 17).withIntParameter("size", 17);
+
+	int i=0;
+	Status response = IDLE;
+
+	while(1){
+		response = mqtt_subcribe(topic);
+
+		if(response != IDLE)
+		{
+			break;
+		}
+		if(i<2){
+			for(int j=0;j<(int)strlen(response_buffer[i]);j++)
+			{
+				mock().expectOneCall("UART_Receive_Fake").andReturnValue((int)response_buffer[i][j]);
+				ESP_UART_ReceiveHandler();
+			}
+			i++;
+		}
+
+	}
+
+	LONGLONGS_EQUAL(STATUS_OK,response);
 }

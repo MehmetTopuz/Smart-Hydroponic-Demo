@@ -76,6 +76,8 @@ Status mqtt_ping_request(void);
 
 Status mqtt_publish_message(const char* topic, const uint8_t* payload, size_t size);
 
+Status mqtt_subcribe(const char* topic);
+
 #ifdef __cplusplus
 }
 #endif
