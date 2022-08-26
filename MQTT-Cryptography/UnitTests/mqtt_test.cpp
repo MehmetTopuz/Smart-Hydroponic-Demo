@@ -284,7 +284,7 @@ TEST(MqttTestGroup, MqttPublishTest)
 	Status response = IDLE;
 
 	while(1){
-		response = mqtt_publish_message(topic, (uint8_t*)payload, strlen(payload));
+		response = mqtt_publish_message(topic, payload);
 
 		if(response != IDLE)
 		{
@@ -301,7 +301,7 @@ TEST(MqttTestGroup, MqttPublishTest)
 
 	}
 
-	LONGLONGS_EQUAL(STATUS_OK,response);
+	LONGS_EQUAL(STATUS_OK,response);
 
 }
 
@@ -343,5 +343,5 @@ TEST(MqttTestGroup, MqttSubscribeTest)
 
 	}
 
-	LONGLONGS_EQUAL(STATUS_OK,response);
+	LONGS_EQUAL(STATUS_OK,response);
 }

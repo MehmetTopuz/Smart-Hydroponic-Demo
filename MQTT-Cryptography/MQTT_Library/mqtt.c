@@ -116,7 +116,6 @@ Status mqtt_connect_broker(const char* ip,const char* port, const char* clientID
 		uint8_t remainLength = lengthOfClientID + 12;
 
 		packet.ConnectByte = 0x10;
-		packet.ConnectByte = 0x10;
 		packet.RemainLength = remainLength;
 		packet.ProtocolNameLength = 0x0004;
 		strcpy(packet.ProtocolName,"MQTT");
@@ -186,14 +185,45 @@ Status mqtt_ping_request(void){
 	return response;
 }
 
-Status mqtt_publish_message(const char* topic, const uint8_t* payload, size_t size){
+Status mqtt_publish_message(const char* topic, const char* payload){
 
-	return STATUS_ERROR;
+	static int isFirstCall = 0;
+	static uint8_t packetBuffer[100] = {0};
+	static int32_t numberOfBytes = 0;
+
+
+	if(!isFirstCall){
+		MQTT_Publish_Packet packet = {0};
+		uint16_t topicLength = strlen(topic);
+		uint16_t messageLength = strlen(payload);
+		uint8_t remainLength = topicLength + messageLength + 2;	// 2 represents topic length bytes.
+
+
+		packet.publishPacketByte = 0x30;	// Qos, DUP flag and Retain bytes are equal zero.
+		packet.remainLength = remainLength;
+		strcpy(packet.topic,topic);
+		packet.topicLength = topicLength;
+		strcpy(packet.message,payload);
+
+		numberOfBytes = mqtt_encode_packet(packetBuffer, &packet, PUBLISH_PACKET);
+
+		if(numberOfBytes < 0)
+			return STATUS_ERROR;
+
+		isFirstCall = 1;
+	}
+
+	Status status = IDLE;
+
+	status = Send_TCP_Bytes(packetBuffer, numberOfBytes);
+
+	return status;
+
 }
 
 Status mqtt_subcribe(const char* topic){
 
-	return STATUS_ERROR;
+
 
 	// handle SUBACK packet later.
 }
