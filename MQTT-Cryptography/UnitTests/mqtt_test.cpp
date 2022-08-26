@@ -318,9 +318,9 @@ TEST(MqttTestGroup, MqttSubscribeTest)
 			(char*)AT_RESPONSE_SEND_OK
 	};
 	uint8_t remainLength = topicLength + 5;
-	uint8_t publishPacket[] = {0x82,remainLength,0x00,packageID,(uint8_t)(topicLength >> 8),(uint8_t)(topicLength & 0xff),'t','e','s','t','/','t','o','p','i','c',Qos};
+	uint8_t subscribePacket[] = {0x82,remainLength,0x00,packageID,(uint8_t)(topicLength >> 8),(uint8_t)(topicLength & 0xff),'t','e','s','t','/','t','o','p','i','c',Qos};
 	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", (uint8_t*)"AT+CIPSEND=17\r\n", strlen("AT+CIPSEND=17\r\n")).withIntParameter("size", strlen("AT+CIPSEND=17\r\n"));
-	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", publishPacket, 17).withIntParameter("size", 17);
+	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", subscribePacket, 17).withIntParameter("size", 17);
 
 	int i=0;
 	Status response = IDLE;

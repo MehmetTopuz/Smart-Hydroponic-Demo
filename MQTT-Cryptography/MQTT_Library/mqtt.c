@@ -217,13 +217,50 @@ Status mqtt_publish_message(const char* topic, const char* payload){
 
 	status = Send_TCP_Bytes(packetBuffer, numberOfBytes);
 
+	if( status == STATUS_ERROR || status == STATUS_OK)
+		isFirstCall = 0;
+
 	return status;
 
 }
 
 Status mqtt_subcribe(const char* topic){
 
+	static int isFirstCall = 0;
+	static uint8_t packetBuffer[100] = {0};
+	static int32_t numberOfBytes = 0;
 
+
+	if(!isFirstCall){
+		MQTT_Subscribe_Packet packet = {0};
+		uint16_t topicLength = strlen(topic);
+
+		uint8_t remainLength = topicLength + 5;
+
+
+		packet.subscribePacketByte = 0x82;
+		packet.remainLength = remainLength;
+		packet.Qos = 0;
+		strcpy(packet.topic,topic);
+		packet.packetID = 0x01;
+		packet.topicLength = topicLength;
+
+		numberOfBytes = mqtt_encode_packet(packetBuffer, &packet, SUBSCRIBE_PACKET);
+
+		if(numberOfBytes < 0)
+			return STATUS_ERROR;
+
+		isFirstCall = 1;
+	}
+
+	Status status = IDLE;
+
+	status = Send_TCP_Bytes(packetBuffer, numberOfBytes);
+
+	if( status == STATUS_ERROR || status == STATUS_OK)
+		isFirstCall = 0;
+
+	return status;
 
 	// handle SUBACK packet later.
 }
