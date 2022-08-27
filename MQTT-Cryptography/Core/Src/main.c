@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "mqtt.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -60,7 +60,38 @@ static void MX_USART1_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+Status response;
 
+void UART_SendMessage(uint8_t* messageArray, size_t size)
+{
+
+	for(int i=0;i<size;i++)
+	{
+		USART1->TDR = *messageArray++;
+		while(!(USART1->ISR & (1<<6)));		// wait for transmit register(TC) to set.
+	}
+/* with HAL drivers-----------------------*/
+//	HAL_UART_Transmit(&huart1, messageArray, strlen((char*)messageArray), HAL_MAX_DELAY);
+}
+
+uint8_t UART_ReceiveByte(void)
+{
+
+	return USART1->RDR;
+/* with HAL drivers-----------------------*/
+//	uint8_t buffer[10];
+//
+//	HAL_UART_Receive(&huart1, &buffer, 1, HAL_MAX_DELAY);
+//
+//	return buffer[0];
+}
+void USART1_IRQHandler(void)
+{
+	  if(!(USART2->ISR & (1<<5)))			// rx interrupt
+	  {
+		 ESP_UART_ReceiveHandler(); 		// ESP receive handler function.
+	  }
+}
 /* USER CODE END 0 */
 
 /**
@@ -100,8 +131,30 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  while(!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin));		// Start button
+
+  USART1->CR1 |= (1<<5); // rx interrupt enable
+
+  ESP_Init(UART_SendMessage,	// UART transmit function
+  		  UART_ReceiveByte,		// UART receive function
+  		  HAL_GetTick,			// get tick function
+  		  255					// UART ring buffer size
+  		  );
+
+  char ssid[] = "Topuz";
+  char password[] = "tmhm4545.";
+//  Send_AT_Command("ATE0\n", strlen("ATE0\n"));
+  while((response = Connect_Wifi(ssid, password)) == IDLE);
+
+  while((response = mqtt_connect_broker("broker.hivemq.com", "1883", "Topuz")) == IDLE);
+
+
   while (1)
   {
+
+	  while((response = mqtt_publish_message("topuz", "test message from ESP.")) == IDLE);
+
+	  HAL_Delay(2000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
