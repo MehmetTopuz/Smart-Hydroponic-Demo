@@ -19,7 +19,7 @@ extern "C"
 
 /* Includes ------------------------------------------------------------------*/
 #include <stdint.h>
-
+#include <stddef.h>
 /**
  * @brief Ring Buffer structure definition
  */
@@ -93,6 +93,8 @@ uint32_t 	ringBuffer_lookFor(RingBuffer* ringBuffer, uint8_t* data);
 uint32_t 	ringBuffer_capacity(RingBuffer* ringBuffer);
 
 uint8_t *mystrstr(const uint8_t *arr, const uint8_t *subArr);
+
+uint32_t array_search(uint8_t *source, uint8_t *array, size_t size_of_source, size_t size_of_array);
 
 /*End of C++ Detection Block ------------------------------------------------------------------*/
 

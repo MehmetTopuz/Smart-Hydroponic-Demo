@@ -170,3 +170,25 @@ uint8_t *mystrstr(const uint8_t *arr, const uint8_t *subArr){
 	}
 	return NULL;
 }
+
+uint32_t array_search(uint8_t *source, uint8_t *array, size_t size_of_source, size_t size_of_array){
+
+	size_t count=0;
+
+	for(int i=0;i<size_of_source;i++){
+		if(source[i] == array[0]){
+			for(int j=0;j<size_of_array;j++){
+				if(size_of_source < (size_of_array+i))
+					return 0;
+				else{
+					if(source[i+j] == array[j]){
+						count++;
+						if(count == size_of_array)
+							return 1;
+					}
+				}
+			}
+		}
+	}
+	return 0;
+}

@@ -140,6 +140,20 @@ TEST(RingBuffer_Test_Group, CapacityTest)
 
 }
 
+TEST(RingBuffer_Test_Group, ArraySearch)
+{
+
+	uint8_t sourceArray[50] = {0};
+	uint8_t array[4] = {0x20,0x02,0x00,0x00};
+
+	sourceArray[20] = 0x20;
+	sourceArray[21] = 0x02;
+
+	uint32_t result = array_search(sourceArray, array, 50, 4);
+
+	LONGS_EQUAL(1,result);
+
+}
 /* Mpck functions-----------------------------------------------------------------------*/
 
 void UART_Transmit_Fake(uint8_t* data, size_t size)
