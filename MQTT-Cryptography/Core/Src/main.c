@@ -144,13 +144,13 @@ int main(void)
   		  );
 
   char ssid[] = "Topuz";
-  char password[] = "tmhm4545.";
+  char password[] = "topuz45.";
 //  Send_AT_Command("ATE0\n", strlen("ATE0\n"));
 //  Send_AT_Command("AT+RST\n", strlen("AT+RST\n"));
   HAL_Delay(2000);
   while((response = Connect_Wifi(ssid, password)) == IDLE);
 
-  while((response = mqtt_connect_broker("192.168.137.1", "1883", "Topuz")) == IDLE);
+  while((response = mqtt_connect_broker("broker.hivemq.com", "1883", "Topuz")) == IDLE);
 
   while((response = mqtt_publish_message("topuz/test", "test message from ESP 1.")) == IDLE);
 

@@ -114,13 +114,18 @@ Status Wait_Response(char* response, uint32_t timeout)
 		time = ESP8266.getTick();
 		firstCall = 1;
 	}
-
-	if(ringBuffer_lookFor(rx_buffer, (uint8_t*)response))
-	{
-		firstCall = 0;
-		time = 0;
-		return FOUND;
-	}
+	if(array_search(rx_buffer->buffer, (uint8_t*)response, rx_buffer->size, strlen(response)))
+		{
+			firstCall = 0;
+			time = 0;
+			return FOUND;
+		}
+//	if(ringBuffer_lookFor(rx_buffer, (uint8_t*)response))
+//	{
+//		firstCall = 0;
+//		time = 0;
+//		return FOUND;
+//	}
 	else if(ESP8266.getTick() - time >= timeout)
 	{
 		firstCall = 0;
