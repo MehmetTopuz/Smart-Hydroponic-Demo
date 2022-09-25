@@ -140,8 +140,8 @@ void ringBuffer_pushArray(RingBuffer* ringBuffer, uint8_t* data)
  */
 uint32_t ringBuffer_lookFor(RingBuffer* ringBuffer, uint8_t* data)
 {
-	char* str = strstr((char*)ringBuffer->buffer,(char*)data);
-
+//	char* str = strstr((char*)ringBuffer->buffer,(char*)data);
+	uint8_t* str = mystrstr(ringBuffer->buffer, data);
 	if(str != NULL)
 		return 1;
 	else
@@ -159,3 +159,14 @@ uint32_t ringBuffer_capacity(RingBuffer* ringBuffer)
 	return ringBuffer->size;
 }
 
+uint8_t *mystrstr(const uint8_t *arr, const uint8_t *subArr){
+
+	for(;*arr;++arr){
+		const uint8_t *p1 = arr, *p2 = subArr;
+		for(;*p1 && *p2 && (*p1 == *p2); ++p1,++p2);
+
+		if(!*p2)
+			return (uint8_t*)arr;
+	}
+	return NULL;
+}

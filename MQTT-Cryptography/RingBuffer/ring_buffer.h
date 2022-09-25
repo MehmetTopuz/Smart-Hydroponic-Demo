@@ -92,6 +92,8 @@ uint32_t 	ringBuffer_lookFor(RingBuffer* ringBuffer, uint8_t* data);
  */
 uint32_t 	ringBuffer_capacity(RingBuffer* ringBuffer);
 
+uint8_t *mystrstr(const uint8_t *arr, const uint8_t *subArr);
+
 /*End of C++ Detection Block ------------------------------------------------------------------*/
 
 #ifdef __cplusplus

@@ -23,6 +23,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "mqtt.h"
+
+extern RingBuffer *rx_buffer;
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -144,17 +146,25 @@ int main(void)
   char ssid[] = "Topuz";
   char password[] = "tmhm4545.";
 //  Send_AT_Command("ATE0\n", strlen("ATE0\n"));
+//  Send_AT_Command("AT+RST\n", strlen("AT+RST\n"));
+  HAL_Delay(2000);
   while((response = Connect_Wifi(ssid, password)) == IDLE);
 
-  while((response = mqtt_connect_broker("broker.hivemq.com", "1883", "Topuz")) == IDLE);
+  while((response = mqtt_connect_broker("192.168.137.1", "1883", "Topuz")) == IDLE);
 
+  while((response = mqtt_publish_message("topuz/test", "test message from ESP 1.")) == IDLE);
 
+  while((response = mqtt_publish_message("topuz/test", "test message from ESP 2.")) == IDLE);
+
+  while((response = mqtt_publish_message("topuz/test", "test message from ESP 3.")) == IDLE);
+
+  while((response = mqtt_publish_message("topuz/test", "test message from ESP 4.")) == IDLE);
   while (1)
   {
 
-	  while((response = mqtt_publish_message("topuz", "test message from ESP.")) == IDLE);
 
-	  HAL_Delay(2000);
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

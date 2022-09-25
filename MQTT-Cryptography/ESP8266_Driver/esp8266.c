@@ -159,7 +159,7 @@ Status Connect_Wifi(char* ssid, char* password)
 	};
 	Status response_state = IDLE;
 
-	char wifi_buffer[50];
+	char wifi_buffer[100];
 
 	sprintf(wifi_buffer,"%s\"%s\",\"%s\"\r\n",AT_CWJAP,ssid,password); 		// AT+CWJAP="<SSID>","<password>"
 
