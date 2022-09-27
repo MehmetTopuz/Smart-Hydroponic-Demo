@@ -144,25 +144,31 @@ int main(void)
   		  );
 
   char ssid[] = "Topuz";
-  char password[] = "topuz45.";
+  char password[] = "tmhm4545.";
 //  Send_AT_Command("ATE0\n", strlen("ATE0\n"));
 //  Send_AT_Command("AT+RST\n", strlen("AT+RST\n"));
   HAL_Delay(2000);
   while((response = Connect_Wifi(ssid, password)) == IDLE);
 
-  while((response = mqtt_connect_broker("broker.hivemq.com", "1883", "Topuz")) == IDLE);
+  while((response = mqtt_connect_broker("192.168.137.1", "1883", "Topuz")) == IDLE);
 
-  while((response = mqtt_publish_message("topuz/test", "test message from ESP 1.")) == IDLE);
-
-  while((response = mqtt_publish_message("topuz/test", "test message from ESP 2.")) == IDLE);
-
-  while((response = mqtt_publish_message("topuz/test", "test message from ESP 3.")) == IDLE);
-
-  while((response = mqtt_publish_message("topuz/test", "test message from ESP 4.")) == IDLE);
+  char payload[100];
+  uint32_t lastTick=0;
+  uint32_t local_time = 0;
+  uint32_t hour=0,minute=0,second=0;
   while (1)
   {
 
+	  if(HAL_GetTick() - lastTick >= 1000){
+		  lastTick = HAL_GetTick();
+		  local_time++;
+		  hour = local_time/3600;
+		  minute = local_time/60;
+		  second = local_time%60;
+		  sprintf(payload,"Local time:%.2d:%.2d:%.2d",hour,minute,second);
+		  while((response = mqtt_publish_message("topuz/test", payload)) == IDLE);
 
+	  }
 
 
     /* USER CODE END WHILE */
