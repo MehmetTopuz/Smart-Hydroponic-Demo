@@ -198,7 +198,7 @@ Status Read_TCP_Message(char* receivedMessage);
 Status Wait_TCP_Message(char* receivedMessage, uint32_t timeout);
 Status Send_TCP_Bytes(uint8_t* buffer, size_t size);
 Status Disable_Echo_Mode(void);
-
+Status Is_Echo_Mode_Disabled(void);
 #ifdef __cplusplus
 }
 #endif

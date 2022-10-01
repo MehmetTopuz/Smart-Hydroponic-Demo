@@ -816,3 +816,17 @@ TEST(EspDriver_Test_Group, Disable_Echo_Mode_Test)
 	LONGS_EQUAL(STATUS_OK,response);
 
 }
+
+TEST(EspDriver_Test_Group, Is_Disable_Echo_Mode_Test)
+{
+
+	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", (uint8_t*)"AT\r\n", strlen("AT\r\n")).withIntParameter("size", strlen("AT\r\n"));
+
+	ringBuffer_pushArray(rx_buffer, (uint8_t*)"AT\r\n");
+
+	Status response = IDLE;
+
+	while((response = Is_Echo_Mode_Disabled()) == IDLE);
+
+	LONGS_EQUAL(STATUS_ERROR,response);
+}

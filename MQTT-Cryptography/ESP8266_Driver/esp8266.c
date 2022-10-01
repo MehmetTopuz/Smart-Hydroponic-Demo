@@ -517,3 +517,16 @@ Status Disable_Echo_Mode(void){
 
 	return response;
 }
+
+Status Is_Echo_Mode_Disabled(void){
+
+	static Status response = IDLE;
+
+	Send_AT_Command("AT\r\n",strlen("AT\r\n"));
+
+	response = Wait_Response("AT", 500);
+
+	if(response == FOUND)
+		return STATUS_ERROR;
+	return response;
+}
