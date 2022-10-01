@@ -141,14 +141,19 @@ int main(void)
   ESP_Init(UART_SendMessage,	// UART transmit function
   		  UART_ReceiveByte,		// UART receive function
   		  HAL_GetTick,			// get tick function
-  		  255					// UART ring buffer size
+  		  1024					// UART ring buffer size
   		  );
 
   char ssid[] = "Topuz";
   char password[] = "tmhm4545.";
-//  Send_AT_Command("ATE0\n", strlen("ATE0\n"));
-//  Send_AT_Command("AT+RST\n", strlen("AT+RST\n"));
+//  Send_AT_Command("AT+RST\r\n", strlen("AT+RST\r\n"));
   HAL_Delay(2000);
+
+  while((response = Is_Echo_Mode_Disabled()) == IDLE);
+
+  if(response == STATUS_ERROR)
+	  while((response = Disable_Echo_Mode()) == IDLE);
+
   while((response = Connect_Wifi(ssid, password)) == IDLE);
 
   while((response = mqtt_connect_broker("192.168.137.1", "1883", "Topuz")) == IDLE);
@@ -162,7 +167,7 @@ int main(void)
   while (1)
   {
 
-	  if(HAL_GetTick() - lastTick >= 5000){
+	  if(HAL_GetTick() - lastTick >= 1000){
 		  lastTick = HAL_GetTick();
 		  local_time++;
 		  hour = local_time/3600;

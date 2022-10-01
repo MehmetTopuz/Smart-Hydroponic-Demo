@@ -502,18 +502,16 @@ Status Disable_Echo_Mode(void){
 
 	Status response = IDLE;
 
-	char *command_buffer[2] =
+	char *command_buffer[1] =
 	{
 			"ATE0\r\n",
-			AT_RESET
 	};
-	char *response_buffer[2] =
+	char *response_buffer[1] =
 	{
 			AT_RESPONSE_OK,
-			"ready"
 	};
 
-	response = Command_Process(command_buffer, response_buffer, 2);
+	response = Command_Process(command_buffer, response_buffer, 1);
 
 	return response;
 }
@@ -521,12 +519,24 @@ Status Disable_Echo_Mode(void){
 Status Is_Echo_Mode_Disabled(void){
 
 	static Status response = IDLE;
+	static int isFirstCall = 0;
 
-	Send_AT_Command("AT\r\n",strlen("AT\r\n"));
+	if(!isFirstCall){
+		Send_AT_Command("AT\r\n",strlen("AT\r\n"));
+		isFirstCall = 1;
+	}
 
-	response = Wait_Response("AT", 500);
+	response = Wait_Response("AT\r\r\n\r\nOK", 1000);
 
-	if(response == FOUND)
+	if(response == FOUND){
+		ringBuffer_flush(rx_buffer);
+		isFirstCall = 0;
 		return STATUS_ERROR;
+	}
+	if(response != IDLE){
+		ringBuffer_flush(rx_buffer);
+		isFirstCall = 0;
+	}
+
 	return response;
 }
