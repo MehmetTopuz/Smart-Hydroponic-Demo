@@ -359,6 +359,92 @@ Status Send_TCP_Message(char* message)
 
 }
 
+
+/**
+ * @brief 	This function reads message if there is a message in the buffer received from the TCP/IP server.
+ * @param 	receviedMessage : If a message is received, it is assigned to receivedMessage.
+ * @retval	STATUS_OK		:The message has been read successfully.
+ * @retval	STATUS_ERROR	:There is no TCP message in the buffer.
+ */
+Status Read_TCP_Message(char* receivedMessage)
+{
+
+	char *substring = strstr((char*)rx_buffer->buffer,"+IPD,");
+
+	char messageLengthString[3];
+
+	uint32_t messageLength=0,index=0;
+
+
+	if(substring != NULL)
+	{
+		for(uint8_t i=0;i<3;i++)
+		{
+			if(*(substring+5+i) == ':')
+				break;
+			messageLengthString[i] = *(substring+5+i);
+			index += 1;
+
+		}
+
+		messageLength = atoi(messageLengthString);
+
+		for(uint32_t i=0;i<messageLength;i++)
+		{
+			receivedMessage[i] = *(substring+6+index+i);
+		}
+		ringBuffer_flush(rx_buffer);
+		return STATUS_OK;
+
+
+	}
+	else
+	{
+		//ringBuffer_flush(rx_buffer);
+		return STATUS_ERROR;
+	}
+
+
+
+}
+
+/**
+ * @brief 	This function waits for a message during the timeout.
+ * @param 	receviedMessage :If a message is received, it is assigned to receivedMessage.
+ * @param 	timeout is an unsigned 32-bit integer that represents timeout in milliseconds.
+ * @retval	STATUS_OK		:The message has been read successfully before timeout does not occur.
+ * @retval	STATUS_ERROR	:There is no TCP message in the buffer.
+ * @retval	TIMEOUT_ERROR	:It returns TIMEOUT_ERROR when timeout occurs.
+ * @retval	IDLE			:If there is not a string in the buffer and timeout does not occur yet, it returns IDLE
+ */
+Status Wait_TCP_Message(char* receivedMessage, uint32_t timeout)
+{
+	static uint8_t firstCall = 1;
+	static uint32_t time = 0;
+
+	if(firstCall)
+	{
+		time = ESP8266.getTick();
+		firstCall = 0;
+	}
+
+	if(Read_TCP_Message(receivedMessage) == STATUS_OK)
+	{
+		time = 0;
+		firstCall = 1;
+		return STATUS_OK;
+	}
+	else if(ESP8266.getTick()-time >= timeout)
+	{
+		time = 0;
+		firstCall = 1;
+		return TIMEOUT_ERROR;
+	}
+	else
+		return IDLE;
+
+}
+
 Status Send_TCP_Bytes(uint8_t* buffer, size_t size)
 {
 
@@ -411,88 +497,23 @@ else if( response == STATUS_ERROR)
 	return response;
 
 }
-/**
- * @brief 	This function reads message if there is a message in the buffer received from the TCP/IP server.
- * @param 	receviedMessage : If a message is received, it is assigned to receivedMessage.
- * @retval	STATUS_OK		:The message has been read successfully.
- * @retval	STATUS_ERROR	:There is no TCP message in the buffer.
- */
-Status Read_TCP_Message(char* receivedMessage)
-{
 
-	char *substring = strstr((char*)rx_buffer->buffer,"+IPD,");
+Status Disable_Echo_Mode(void){
 
-	char messageLengthString[3];
+	Status response = IDLE;
 
-	uint32_t messageLength=0,index=0;
-
-
-	if(substring != NULL)
+	char *command_buffer[2] =
 	{
-		for(uint8_t i=0;i<3;i++)
-		{
-			if(*(substring+5+i) == ':')
-				break;
-			messageLengthString[i] = *(substring+5+i);
-			index += 1;
-
-		}
-
-		messageLength = atoi(messageLengthString);
-
-		for(uint32_t i=0;i<messageLength;i++)
-		{
-			receivedMessage[i] = *(substring+6+index+i);
-		}
-		ringBuffer_flush(rx_buffer);
-		return STATUS_OK;
-
-
-	}
-	else
+			"ATE0\r\n",
+			AT_RESET
+	};
+	char *response_buffer[2] =
 	{
-		ringBuffer_flush(rx_buffer);
-		return STATUS_ERROR;
-	}
+			AT_RESPONSE_OK,
+			"ready"
+	};
 
+	response = Command_Process(command_buffer, response_buffer, 2);
 
-
+	return response;
 }
-
-/**
- * @brief 	This function waits for a message during the timeout.
- * @param 	receviedMessage :If a message is received, it is assigned to receivedMessage.
- * @param 	timeout is an unsigned 32-bit integer that represents timeout in milliseconds.
- * @retval	STATUS_OK		:The message has been read successfully before timeout does not occur.
- * @retval	STATUS_ERROR	:There is no TCP message in the buffer.
- * @retval	TIMEOUT_ERROR	:It returns TIMEOUT_ERROR when timeout occurs.
- * @retval	IDLE			:If there is not a string in the buffer and timeout does not occur yet, it returns IDLE
- */
-Status Wait_TCP_Message(char* receivedMessage, uint32_t timeout)
-{
-	static uint8_t firstCall = 1;
-	static uint32_t time = 0;
-
-	if(firstCall)
-	{
-		time = ESP8266.getTick();
-		firstCall = 0;
-	}
-
-	if(Read_TCP_Message(receivedMessage) == STATUS_OK)
-	{
-		time = 0;
-		firstCall = 1;
-		return STATUS_OK;
-	}
-	else if(ESP8266.getTick()-time >= timeout)
-	{
-		time = 0;
-		firstCall = 1;
-		return TIMEOUT_ERROR;
-	}
-	else
-		return IDLE;
-
-}
-

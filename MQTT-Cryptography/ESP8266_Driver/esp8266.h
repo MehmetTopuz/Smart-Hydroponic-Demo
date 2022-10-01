@@ -23,7 +23,7 @@ extern "C"
 #include "ring_buffer.h"
 #include <stdio.h>
 /* AT commands definitions ------------------------------------------------------------------*/
-
+#define AT_RESET					"AT+RST\r\n"
 #define AT_CWMODE_STATION			"AT+CWMODE=1\r\n"
 #define	AT_CWQAP					"AT+CWQAP\r\n"
 #define AT_CWJAP					"AT+CWJAP="
@@ -183,8 +183,6 @@ Status Send_TCP_Message(char* message);
  * @retval	STATUS_OK		:The message has been read successfully.
  * @retval	STATUS_ERROR	:There is no TCP message in the buffer.
  */
-Status Send_TCP_Bytes(uint8_t* buffer, size_t size);
-
 
 Status Read_TCP_Message(char* receivedMessage);
 
@@ -198,6 +196,8 @@ Status Read_TCP_Message(char* receivedMessage);
  * @retval	IDLE			:If there is not a string in the buffer and timeout does not occur yet, it returns IDLE
  */
 Status Wait_TCP_Message(char* receivedMessage, uint32_t timeout);
+Status Send_TCP_Bytes(uint8_t* buffer, size_t size);
+Status Disable_Echo_Mode(void);
 
 #ifdef __cplusplus
 }

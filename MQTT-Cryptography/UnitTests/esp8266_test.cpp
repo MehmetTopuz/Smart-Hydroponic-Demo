@@ -786,3 +786,33 @@ TEST(EspDriver_Test_Group, Send_TCP_Bytes_Test)
 
 }
 
+TEST(EspDriver_Test_Group, Disable_Echo_Mode_Test)
+{
+	char *response_buffer[2] =
+	{
+			AT_RESPONSE_OK,
+			(char*)"ready\r\n"
+	};
+
+	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", (uint8_t*)"ATE0\r\n", strlen("ATE0\r\n")).withIntParameter("size", strlen("ATE0\r\n"));
+	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", (uint8_t*)"AT+RST\r\n", strlen("AT+RST\r\n")).withIntParameter("size", strlen("AT+RST\r\n"));
+
+	Status response = IDLE;
+	int i=0;
+	while(1){
+			response = Disable_Echo_Mode();
+
+			if(response != IDLE)
+				break;
+			if(i<2){
+				for(int j=0;j<(int)strlen(response_buffer[i]);j++)
+				{
+					mock().expectOneCall("UART_Receive_Fake").andReturnValue((int)response_buffer[i][j]);
+					ESP_UART_ReceiveHandler();
+				}
+				i++;
+			}
+	}
+	LONGS_EQUAL(STATUS_OK,response);
+
+}

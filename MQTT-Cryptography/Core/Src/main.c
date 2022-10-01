@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "mqtt.h"
+#include "string.h"
 
 extern RingBuffer *rx_buffer;
 /* USER CODE END Includes */
@@ -156,10 +157,12 @@ int main(void)
   uint32_t lastTick=0;
   uint32_t local_time = 0;
   uint32_t hour=0,minute=0,second=0;
+  while((response = mqtt_subcribe("topuz/sub")) == IDLE);
+  char received_msg[100] = {0};
   while (1)
   {
 
-	  if(HAL_GetTick() - lastTick >= 1000){
+	  if(HAL_GetTick() - lastTick >= 5000){
 		  lastTick = HAL_GetTick();
 		  local_time++;
 		  hour = local_time/3600;
@@ -170,6 +173,11 @@ int main(void)
 
 	  }
 
+	  response = Read_TCP_Message(received_msg);
+	  if(response == STATUS_OK)
+		  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+
+//	  HAL_Delay(500);
 
     /* USER CODE END WHILE */
 
