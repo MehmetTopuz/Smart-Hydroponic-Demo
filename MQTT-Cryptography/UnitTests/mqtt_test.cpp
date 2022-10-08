@@ -30,6 +30,7 @@ TEST_GROUP(MqttTestGroup)
 				  UART_Receive_Fake,
 				  getTick_Fake,
 				  255);
+		mqtt_init(255);
 	}
 
 	void teardown()
@@ -344,4 +345,22 @@ TEST(MqttTestGroup, MqttSubscribeTest)
 	}
 
 	LONGS_EQUAL(STATUS_OK,response);
+}
+
+extern RingBuffer *mqtt_rx_buffer;
+
+TEST(MqttTestGroup, MqttRingBufferTest)
+{
+	const char msg[] = "Mqtt test message";
+
+	for(int32_t i=0;i<(int32_t)strlen(msg);i++)
+	{
+		mock().expectOneCall("UART_Receive_Fake").andReturnValue((uint8_t)msg[i]);
+		mqtt_receive_handler();
+	}
+
+	STRCMP_EQUAL("Mqtt test message",(char*)mqtt_rx_buffer->buffer);
+	LONGS_EQUAL(strlen(msg),mqtt_rx_buffer->head);
+	LONGS_EQUAL(255,mqtt_rx_buffer->size);
+
 }

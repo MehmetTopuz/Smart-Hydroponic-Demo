@@ -19,7 +19,7 @@
 
 
 /* Private Variables ------------------------------------------------------------------*/
-static Esp_Init_Typedef ESP8266;
+Esp_Init_Typedef ESP8266;
 
 RingBuffer* rx_buffer;			// uart ring buffer structure
 

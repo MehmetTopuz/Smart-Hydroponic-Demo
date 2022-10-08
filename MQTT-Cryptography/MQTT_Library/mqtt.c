@@ -11,6 +11,17 @@
 #include <string.h>
 #include "mqtt.h"
 
+RingBuffer *mqtt_rx_buffer;
+
+
+uint32_t mqtt_init(size_t rx_buffer_size){
+
+	mqtt_rx_buffer = ringBuffer_init(rx_buffer_size);
+	if(mqtt_rx_buffer != NULL)
+		return 1;
+
+	return 0;
+}
 
 int32_t mqtt_encode_packet(uint8_t *buffer, void *packet, mqtt_packet_types packetType ){
 
@@ -263,4 +274,11 @@ Status mqtt_subcribe(const char* topic){
 	return status;
 
 	// handle SUBACK packet later.
+}
+
+extern Esp_Init_Typedef ESP8266;
+
+void mqtt_receive_handler(void){
+
+	ringBuffer_push(mqtt_rx_buffer, ESP8266.UART_Receive());
 }

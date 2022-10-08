@@ -93,6 +93,7 @@ void USART1_IRQHandler(void)
 	  if(!(USART2->ISR & (1<<5)))			// rx interrupt
 	  {
 		 ESP_UART_ReceiveHandler(); 		// ESP receive handler function.
+		 mqtt_receive_handler();
 	  }
 }
 /* USER CODE END 0 */
@@ -143,7 +144,7 @@ int main(void)
   		  HAL_GetTick,			// get tick function
   		  1024					// UART ring buffer size
   		  );
-
+  mqtt_init(255);
   char ssid[] = "Topuz";
   char password[] = "tmhm4545.";
 //  Send_AT_Command("AT+RST\r\n", strlen("AT+RST\r\n"));

@@ -67,6 +67,7 @@ typedef struct{
 	char message[MAX_LENGTH_OF_TOPIC_MESSAGE];
 }MQTT_Publish_Packet;
 
+uint32_t mqtt_init(size_t rx_buffer_size);
 
 int32_t mqtt_encode_packet(uint8_t *buffer, void *packet, mqtt_packet_types packetType );
 
@@ -77,6 +78,8 @@ Status mqtt_ping_request(void);
 Status mqtt_publish_message(const char* topic, const char* payload);
 
 Status mqtt_subcribe(const char* topic);
+
+void mqtt_receive_handler(void);
 
 #ifdef __cplusplus
 }
