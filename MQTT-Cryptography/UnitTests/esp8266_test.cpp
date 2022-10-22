@@ -120,14 +120,14 @@ TEST(RingBuffer_Test_Group, BufferFlushTest)
 
 TEST(RingBuffer_Test_Group, PushArrayTest)
 {
-	ringBuffer_pushArray(testBuf, (uint8_t*)"Test");
+	ringBuffer_pushArray(testBuf, (uint8_t*)"Test", strlen("Test"));
 
 	STRCMP_EQUAL("Test",(char*)testBuf->buffer);
 }
 
 TEST(RingBuffer_Test_Group, LookForTest)
 {
-	ringBuffer_pushArray(testBuf, (uint8_t*)"Hello World");
+	ringBuffer_pushArray(testBuf, (uint8_t*)"Hello World", strlen("Hello World"));
 
 	STRCMP_EQUAL("Hello World",(char*)testBuf->buffer);
 	CHECK_EQUAL(1,ringBuffer_lookFor(testBuf, (uint8_t*)"World"));
@@ -820,7 +820,7 @@ TEST(EspDriver_Test_Group, Is_Disable_Echo_Mode_Test)
 
 	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", (uint8_t*)"AT\r\n", strlen("AT\r\n")).withIntParameter("size", strlen("AT\r\n"));
 
-	ringBuffer_pushArray(rx_buffer, (uint8_t*)"AT\r\r\n\r\nOK");
+	ringBuffer_pushArray(rx_buffer, (uint8_t*)"AT\r\r\n\r\nOK", strlen("AT\r\r\n\r\nOK"));
 
 	Status response = IDLE;
 

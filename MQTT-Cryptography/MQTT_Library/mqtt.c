@@ -210,7 +210,7 @@ Status mqtt_publish_message(const char* topic, const char* payload){
 		uint8_t remainLength = topicLength + messageLength + 2;	// 2 represents topic length bytes.
 
 
-		packet.publishPacketByte = 0x30;	// Qos, DUP flag and Retain bytes are equal zero.
+		packet.publishPacketByte = MQTT_PUBLISH_HEADER;	// Qos, DUP flag and Retain bytes are equal to zero.
 		packet.remainLength = remainLength;
 		strcpy(packet.topic,topic);
 		packet.topicLength = topicLength;
@@ -281,4 +281,11 @@ extern Esp_Init_Typedef ESP8266;
 void mqtt_receive_handler(void){
 
 	ringBuffer_push(mqtt_rx_buffer, ESP8266.UART_Receive());
+}
+
+int32_t mqtt_read_message(MQTT_Publish_Packet *packet, const char *topic){
+
+
+
+	return -1;
 }

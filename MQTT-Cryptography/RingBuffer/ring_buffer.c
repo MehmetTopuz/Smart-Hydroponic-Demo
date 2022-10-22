@@ -125,9 +125,9 @@ void ringBuffer_flush(RingBuffer* ringBuffer)
  * @param	data is an unsigned 8-bit data array to be written into the buffer.
  * @retval	None.
  */
-void ringBuffer_pushArray(RingBuffer* ringBuffer, uint8_t* data)
+void ringBuffer_pushArray(RingBuffer* ringBuffer, uint8_t* data, size_t size)
 {
-	 for(int i = 0; i<strlen((char*)data);i++)
+	 for(int i = 0; i<size;i++)
 		 ringBuffer_push(ringBuffer, data[i]);
 }
 

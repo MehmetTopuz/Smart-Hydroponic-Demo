@@ -364,3 +364,34 @@ TEST(MqttTestGroup, MqttRingBufferTest)
 	LONGS_EQUAL(255,mqtt_rx_buffer->size);
 
 }
+
+TEST(MqttTestGroup, MqttReadMessageTest)
+{
+	// create fake publish message for subscribtion
+	MQTT_Publish_Packet pub_packet = {0};
+	strcpy(pub_packet.message,"MOTOR_ON");
+	pub_packet.publishPacketByte = MQTT_PUBLISH_HEADER;
+	strcpy(pub_packet.topic,"garden/hydroponic");
+	pub_packet.topicLength = strlen("garden/hydroponic");
+	pub_packet.remainLength = pub_packet.topicLength + strlen("MOTOR_ON") + 2;
+
+	uint8_t buffer[100] = {0};
+	int32_t numberOfBytes = mqtt_encode_packet(buffer, &pub_packet, PUBLISH_PACKET);
+
+	if(numberOfBytes < 0)
+		FAIL_TEST("encode packet error!");
+
+	// push it into ring buffer
+	ringBuffer_pushArray(mqtt_rx_buffer, buffer,numberOfBytes);
+	// call read message function
+	MQTT_Publish_Packet received_packet = {0};
+	int32_t result = 0;
+	result = mqtt_read_message(&received_packet, "garden/hydroponic");
+	// check the properties of received message
+	LONGS_EQUAL(1,result);
+	STRCMP_EQUAL(pub_packet.message,received_packet.message);
+	STRCMP_EQUAL(pub_packet.topic,received_packet.topic);
+	LONGS_EQUAL(pub_packet.remainLength,received_packet.remainLength);
+	LONGS_EQUAL(pub_packet.publishPacketByte,received_packet.publishPacketByte);
+	LONGS_EQUAL(pub_packet.topicLength,received_packet.topicLength);
+}

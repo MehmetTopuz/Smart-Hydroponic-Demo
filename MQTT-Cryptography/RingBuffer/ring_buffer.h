@@ -60,7 +60,7 @@ void 		ringBuffer_push(RingBuffer* ringBuffer, uint8_t data);
  * @param	data is an unsigned 8-bit data array to be written into the buffer.
  * @retval	None.
  */
-void 		ringBuffer_pushArray(RingBuffer* ringBuffer, uint8_t* data);
+void 		ringBuffer_pushArray(RingBuffer* ringBuffer, uint8_t* data, size_t size);
 
 /**
  * @brief 	Read data from the buffer.
