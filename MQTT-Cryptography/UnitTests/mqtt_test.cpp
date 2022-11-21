@@ -388,7 +388,7 @@ TEST(MqttTestGroup, MqttReadMessageTest)
 	int32_t result = 0;
 	result = mqtt_read_message(&received_packet, "garden/hydroponic");
 	// check the properties of received message
-	LONGS_EQUAL(1,result);
+	LONGS_EQUAL(strlen("MOTOR_ON"),result);
 	STRCMP_EQUAL(pub_packet.message,received_packet.message);
 	STRCMP_EQUAL(pub_packet.topic,received_packet.topic);
 	LONGS_EQUAL(pub_packet.remainLength,received_packet.remainLength);

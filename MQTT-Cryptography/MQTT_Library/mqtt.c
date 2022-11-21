@@ -285,7 +285,37 @@ void mqtt_receive_handler(void){
 
 int32_t mqtt_read_message(MQTT_Publish_Packet *packet, const char *topic){
 
+	// search topic name in the buffer
+	int position = 0;
+	int count = 0;
+	for(int i=0; i<(mqtt_rx_buffer->size - strlen(topic));i++){
+		for(int j=0;j<strlen(topic);j++){
+			if((char)mqtt_rx_buffer->buffer[i+j] == topic[j]){
+				count++;
 
+				position = i;
+				if(count == strlen(topic))
+					break;
+			}
+			else{
+				count = 0;
+				position = 0;
+			}
 
-	return -1;
+		}
+		if(count == strlen(topic))
+			break;
+
+	}
+	// read properties of packet if it is available in the buffer
+
+	packet->topicLength = mqtt_rx_buffer->buffer[position-1];
+	packet->topicLength = (mqtt_rx_buffer->buffer[position-2] << 8) + packet->topicLength;
+	packet->remainLength = mqtt_rx_buffer->buffer[position-3];
+	packet->publishPacketByte = mqtt_rx_buffer->buffer[position-4];
+	memcpy(packet->message,&mqtt_rx_buffer->buffer[position+strlen(topic)],packet->remainLength - packet->topicLength);
+	memcpy(packet->topic,&mqtt_rx_buffer->buffer[position],strlen(topic));
+	ringBuffer_flush(mqtt_rx_buffer);
+	// return message size
+	return strlen(packet->message);
 }

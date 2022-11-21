@@ -90,7 +90,7 @@ uint8_t UART_ReceiveByte(void)
 }
 void USART1_IRQHandler(void)
 {
-	  if(!(USART2->ISR & (1<<5)))			// rx interrupt
+	  if(USART1->ISR & (1<<5))			// rx interrupt
 	  {
 		 ESP_UART_ReceiveHandler(); 		// ESP receive handler function.
 		 mqtt_receive_handler();
@@ -137,14 +137,17 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while(!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin));		// Start button
 
-  USART1->CR1 |= (1<<5); // rx interrupt enable
-
   ESP_Init(UART_SendMessage,	// UART transmit function
   		  UART_ReceiveByte,		// UART receive function
   		  HAL_GetTick,			// get tick function
   		  1024					// UART ring buffer size
   		  );
-  mqtt_init(255);
+
+  mqtt_init((size_t)255);
+
+  USART1->CR1 |= (1<<5); // rx interrupt enable
+
+
   char ssid[] = "Topuz";
   char password[] = "tmhm4545.";
 //  Send_AT_Command("AT+RST\r\n", strlen("AT+RST\r\n"));
@@ -180,8 +183,10 @@ int main(void)
 	  }
 
 	  response = Read_TCP_Message(received_msg);
-	  if(response == STATUS_OK)
+	  if(response == STATUS_OK){
 		  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+	  }
+
 
 //	  HAL_Delay(500);
 
