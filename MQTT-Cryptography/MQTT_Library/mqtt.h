@@ -84,6 +84,8 @@ void mqtt_receive_handler(void);
 
 int32_t mqtt_read_message(MQTT_Publish_Packet *packet, const char *topic);
 
+void mqtt_clear_buffer(void);
+
 #ifdef __cplusplus
 }
 #endif

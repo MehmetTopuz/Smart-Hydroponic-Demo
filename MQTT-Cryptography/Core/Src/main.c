@@ -143,7 +143,7 @@ int main(void)
   		  1024					// UART ring buffer size
   		  );
 
-  mqtt_init((size_t)255);
+  mqtt_init((size_t)1024);
 
   USART1->CR1 |= (1<<5); // rx interrupt enable
 
@@ -167,7 +167,10 @@ int main(void)
   uint32_t local_time = 0;
   uint32_t hour=0,minute=0,second=0;
   while((response = mqtt_subcribe("topuz/sub")) == IDLE);
-  char received_msg[100] = {0};
+
+  int result = 0;
+  MQTT_Publish_Packet received_packet = {0};
+
   while (1)
   {
 
@@ -182,11 +185,14 @@ int main(void)
 
 	  }
 
-	  response = Read_TCP_Message(received_msg);
-	  if(response == STATUS_OK){
-		  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-	  }
+	  result = mqtt_read_message(&received_packet, "topuz/sub");
+	  if(result>0)
+	  {
+		  if(strcmp(received_packet.message,"LED_TOGGLE") == 0)
+			  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
 
+		  mqtt_clear_buffer();
+	  }
 
 //	  HAL_Delay(500);
 
