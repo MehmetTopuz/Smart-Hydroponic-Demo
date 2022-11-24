@@ -188,8 +188,10 @@ int main(void)
 	  result = mqtt_read_message(&received_packet, "topuz/sub");
 	  if(result>0)
 	  {
-		  if(strcmp(received_packet.message,"LED_TOGGLE") == 0)
+		  if(strcmp(received_packet.message,"LED_TOGGLE") == 0){
 			  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+			  while((response = mqtt_disconnect_broker()) == IDLE );
+		  }
 
 		  mqtt_clear_buffer();
 	  }

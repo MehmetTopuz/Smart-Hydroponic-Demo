@@ -167,6 +167,21 @@ Status mqtt_connect_broker(const char* ip,const char* port, const char* clientID
 
 }
 
+Status mqtt_disconnect_broker(void){
+
+	uint8_t disconnect_packet[2] = {MQTT_DISCONNECT_HEADER,0x00};
+
+	Status response = IDLE;
+
+	response = Send_TCP_Bytes(disconnect_packet, 2);
+	if(response == FOUND){
+		return IDLE;
+	}
+	else
+		return response;
+
+	return IDLE;
+}
 Status mqtt_ping_request(void){
 
 	Status response = IDLE;

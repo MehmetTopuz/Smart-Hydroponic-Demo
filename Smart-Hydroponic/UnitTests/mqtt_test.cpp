@@ -395,3 +395,41 @@ TEST(MqttTestGroup, MqttReadMessageTest)
 	LONGS_EQUAL(pub_packet.publishPacketByte,received_packet.publishPacketByte);
 	LONGS_EQUAL(pub_packet.topicLength,received_packet.topicLength);
 }
+
+TEST(MqttTestGroup, MqttDisconnectBrokerTest)
+{
+	char *response_buffer[2] =
+	{
+			(char*)AT_RESPONSE_GREATER_THAN,
+			(char*)AT_RESPONSE_SEND_OK
+	};
+
+	uint8_t disconnect_packet[2] = { 0xE0, 0x00};
+
+	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", (uint8_t*)"AT+CIPSEND=2\r\n", strlen("AT+CIPSEND=2\r\n")).withIntParameter("size", strlen("AT+CIPSEND=2\r\n"));
+	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", disconnect_packet, 2).withIntParameter("size", 2);
+
+	int i=0;
+	Status response = IDLE;
+
+	while(1){
+		response = mqtt_disconnect_broker();
+
+		if(response != IDLE)
+		{
+			break;
+		}
+		if(i<2){
+			for(int j=0;j<(int)strlen(response_buffer[i]);j++)
+			{
+				mock().expectOneCall("UART_Receive_Fake").andReturnValue((int)response_buffer[i][j]);
+				ESP_UART_ReceiveHandler();
+			}
+			i++;
+		}
+
+	}
+
+	LONGS_EQUAL(STATUS_OK,response);
+
+}
