@@ -89,7 +89,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
+  //while(!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin));		// Start button
   const char * av_override[] = { "exe","-v" };      // verbose mode
   CommandLineTestRunner::RunAllTests(2, av_override);
   while (1)

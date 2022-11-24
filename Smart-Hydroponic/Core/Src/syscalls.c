@@ -32,9 +32,11 @@
 #include <sys/times.h>
 
 #include "stm32g4xx.h"
+extern UART_HandleTypeDef hlpuart1;
 /* Variables */
 extern int __io_putchar(int ch) __attribute__((weak));
 extern int __io_getchar(void) __attribute__((weak));
+
 
 
 char *__env[1] = { 0 };
@@ -82,7 +84,8 @@ __attribute__((weak)) int _write(int file, char *ptr, int len)
 	for (DataIdx = 0; DataIdx < len; DataIdx++)
 	{
 		//__io_putchar(*ptr++);
-		ITM_SendChar(*ptr++);
+//		ITM_SendChar(*ptr++);
+		HAL_UART_Transmit(&hlpuart1, (uint8_t*)(ptr++),1,1000);
 	}
 	return len;
 }
