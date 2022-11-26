@@ -22,10 +22,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "mqtt.h"
-#include "string.h"
-
-extern RingBuffer *rx_buffer;
+#include "app.h"
+//#include "mqtt.h"
+//#include "string.h"
+//
+//extern RingBuffer *rx_buffer;
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -63,39 +64,39 @@ static void MX_USART1_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-Status response;
-
-void UART_SendMessage(uint8_t* messageArray, size_t size)
-{
-
-	for(int i=0;i<size;i++)
-	{
-		USART1->TDR = *messageArray++;
-		while(!(USART1->ISR & (1<<6)));		// wait for transmit register(TC) to set.
-	}
-/* with HAL drivers-----------------------*/
-//	HAL_UART_Transmit(&huart1, messageArray, strlen((char*)messageArray), HAL_MAX_DELAY);
-}
-
-uint8_t UART_ReceiveByte(void)
-{
-
-	return USART1->RDR;
-/* with HAL drivers-----------------------*/
-//	uint8_t buffer[10];
+//Status response;
 //
-//	HAL_UART_Receive(&huart1, &buffer, 1, HAL_MAX_DELAY);
+//void UART_SendMessage(uint8_t* messageArray, size_t size)
+//{
 //
-//	return buffer[0];
-}
-void USART1_IRQHandler(void)
-{
-	  if(USART1->ISR & (1<<5))			// rx interrupt
-	  {
-		 ESP_UART_ReceiveHandler(); 		// ESP receive handler function.
-		 mqtt_receive_handler();
-	  }
-}
+//	for(int i=0;i<size;i++)
+//	{
+//		USART1->TDR = *messageArray++;
+//		while(!(USART1->ISR & (1<<6)));		// wait for transmit register(TC) to set.
+//	}
+///* with HAL drivers-----------------------*/
+////	HAL_UART_Transmit(&huart1, messageArray, strlen((char*)messageArray), HAL_MAX_DELAY);
+//}
+//
+//uint8_t UART_ReceiveByte(void)
+//{
+//
+//	return USART1->RDR;
+///* with HAL drivers-----------------------*/
+////	uint8_t buffer[10];
+////
+////	HAL_UART_Receive(&huart1, &buffer, 1, HAL_MAX_DELAY);
+////
+////	return buffer[0];
+//}
+//void USART1_IRQHandler(void)
+//{
+//	  if(USART1->ISR & (1<<5))			// rx interrupt
+//	  {
+//		 ESP_UART_ReceiveHandler(); 		// ESP receive handler function.
+//		 mqtt_receive_handler();
+//	  }
+//}
 /* USER CODE END 0 */
 
 /**
@@ -137,71 +138,73 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while(!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin));		// Start button
 
-  ESP_Init(UART_SendMessage,	// UART transmit function
-  		  UART_ReceiveByte,		// UART receive function
-  		  HAL_GetTick,			// get tick function
-  		  1024					// UART ring buffer size
-  		  );
-
-  mqtt_init((size_t)1024);
-
-  USART1->CR1 |= (1<<5); // rx interrupt enable
-
-
-  char ssid[] = "Topuz";
-  char password[] = "tmhm4545.";
-//  Send_AT_Command("AT+RST\r\n", strlen("AT+RST\r\n"));
-  HAL_Delay(2000);
-
-  while((response = Is_Echo_Mode_Disabled()) == IDLE);
-
-  if(response == STATUS_ERROR)
-	  while((response = Disable_Echo_Mode()) == IDLE);
-
-  while((response = Connect_Wifi(ssid, password)) == IDLE);
-
-  while((response = mqtt_connect_broker("192.168.137.1", "1883", "Topuz")) == IDLE);
-
-  char payload[100];
-  uint32_t lastTick=0;
-  uint32_t local_time = 0;
-  uint32_t hour=0,minute=0,second=0;
-  while((response = mqtt_subcribe("topuz/sub")) == IDLE);
-
-  int result = 0;
-  MQTT_Publish_Packet received_packet = {0};
-
-  while (1)
-  {
-
-	  if(HAL_GetTick() - lastTick >= 1000){
-		  lastTick = HAL_GetTick();
-		  local_time++;
-		  hour = local_time/3600;
-		  minute = local_time/60;
-		  second = local_time%60;
-		  sprintf(payload,"Local time:%.2d:%.2d:%.2d",hour,minute,second);
-		  while((response = mqtt_publish_message("topuz/test", payload)) == IDLE);
-
-	  }
-
-	  result = mqtt_read_message(&received_packet, "topuz/sub");
-	  if(result>0)
-	  {
-		  if(strcmp(received_packet.message,"LED_TOGGLE") == 0){
-			  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-			  while((response = mqtt_disconnect_broker()) == IDLE );
-		  }
-
-		  mqtt_clear_buffer();
-	  }
-
-//	  HAL_Delay(500);
-
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
-  }
+  app_init();
+  app_run();
+//  ESP_Init(UART_SendMessage,	// UART transmit function
+//  		  UART_ReceiveByte,		// UART receive function
+//  		  HAL_GetTick,			// get tick function
+//  		  1024					// UART ring buffer size
+//  		  );
+//
+//  mqtt_init((size_t)1024);
+//
+//  USART1->CR1 |= (1<<5); // rx interrupt enable
+//
+//
+//  char ssid[] = "Topuz";
+//  char password[] = "tmhm4545.";
+////  Send_AT_Command("AT+RST\r\n", strlen("AT+RST\r\n"));
+//  HAL_Delay(2000);
+//
+//  while((response = Is_Echo_Mode_Disabled()) == IDLE);
+//
+//  if(response == STATUS_ERROR)
+//	  while((response = Disable_Echo_Mode()) == IDLE);
+//
+//  while((response = Connect_Wifi(ssid, password)) == IDLE);
+//
+//  while((response = mqtt_connect_broker("192.168.137.1", "1883", "Topuz")) == IDLE);
+//
+//  char payload[100];
+//  uint32_t lastTick=0;
+//  uint32_t local_time = 0;
+//  uint32_t hour=0,minute=0,second=0;
+//  while((response = mqtt_subcribe("topuz/sub")) == IDLE);
+//
+//  int result = 0;
+//  MQTT_Publish_Packet received_packet = {0};
+//
+//  while (1)
+//  {
+//
+//	  if(HAL_GetTick() - lastTick >= 1000){
+//		  lastTick = HAL_GetTick();
+//		  local_time++;
+//		  hour = local_time/3600;
+//		  minute = local_time/60;
+//		  second = local_time%60;
+//		  sprintf(payload,"Local time:%.2d:%.2d:%.2d",hour,minute,second);
+//		  while((response = mqtt_publish_message("topuz/test", payload)) == IDLE);
+//
+//	  }
+//
+//	  result = mqtt_read_message(&received_packet, "topuz/sub");
+//	  if(result>0)
+//	  {
+//		  if(strcmp(received_packet.message,"LED_TOGGLE") == 0){
+//			  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+//			  while((response = mqtt_disconnect_broker()) == IDLE );
+//		  }
+//
+//		  mqtt_clear_buffer();
+//	  }
+//
+////	  HAL_Delay(500);
+//
+//    /* USER CODE END WHILE */
+//
+//    /* USER CODE BEGIN 3 */
+//  }
   /* USER CODE END 3 */
 }
 
