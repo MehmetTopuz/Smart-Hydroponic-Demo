@@ -23,6 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
 #include "app.h"
 //#include "mqtt.h"
 //#include "string.h"
@@ -169,9 +170,12 @@ int main(void)
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
   while(!HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin));		// Start button
 
   app_init();
+
+  vTaskStartScheduler();
   app_run();
 //  ESP_Init(UART_SendMessage,	// UART transmit function
 //  		  UART_ReceiveByte,		// UART receive function
