@@ -311,7 +311,14 @@ void command_process_task(void *argument){
 
 void timer_callback(TimerHandle_t xTimer){
 
+	static uint32_t count_for_publish = 0;
 
+	count_for_publish++;
+
+	if(count_for_publish >= PUBLISH_PERIOD){
+		count_for_publish = 0;
+		xSemaphoreGive(publisher_task_sem);
+	}
 }
 /* configCHECK_FOR_STACK_OVERFLOW must be set to 1 in order to use the vApplicationStackOverflowHook function. */
 
