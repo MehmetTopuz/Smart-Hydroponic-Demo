@@ -213,11 +213,36 @@ void publisher_task(void *argument){
 
 void listener_task(void *argument){
 
+	/*
+	 * All tasks need to be suspended at first.
+	 * As a result, we need a blocking object, like a semaphore.
+	 */
+	xSemaphoreTake(broker_connected_sem, portMAX_DELAY);
 
+	int32_t result = 0;
+	MQTT_Publish_Packet received_packet = {0};
 
 	for(;;){
+		/*
+		 * TODO: Write a wrapper function for read message.
+		 * This function must have a string array that include topics.
+		 *
+		 */
+		result = mqtt_read_message(&received_packet, "topuz/sub");
 
+		if(result > 0){
 
+			/*
+			 * TODO: Add command to command queue.
+			 */
+			if(strcmp(received_packet.message,"LED_TOGGLE") == 0){
+			  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+			}
+
+			mqtt_clear_buffer();
+
+			taskYIELD();
+		}
 
 	}
 }
