@@ -540,3 +540,30 @@ Status Is_Echo_Mode_Disabled(void){
 
 	return response;
 }
+
+Status Is_Wifi_Connected(void){
+
+	Status response = IDLE;
+	static int is_first_call = 0;
+
+	if(!is_first_call){
+		Send_AT_Command(AT_CWJAP_REQ, strlen(AT_CWJAP_REQ));
+		is_first_call = 1;
+	}
+
+	response = Wait_Response(AT_RESPONSE_NO_AP, TIMEOUT);
+
+	if(response == FOUND){
+		is_first_call = 0;
+		ringBuffer_flush(rx_buffer);
+		return STATUS_ERROR;
+	}
+	else if(ringBuffer_lookFor(rx_buffer, "+CWJAP:")){
+		is_first_call = 0;
+		ringBuffer_flush(rx_buffer);
+		return STATUS_OK;
+	}
+
+	return response;
+
+}

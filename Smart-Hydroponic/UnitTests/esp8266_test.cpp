@@ -828,3 +828,31 @@ TEST(EspDriver_Test_Group, Is_Disable_Echo_Mode_Test)
 
 	LONGS_EQUAL(STATUS_ERROR,response);
 }
+
+TEST(EspDriver_Test_Group, Is_Wifi_Connected_Error_Test)
+{
+	// mock uart transmit
+	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", (uint8_t*)AT_CWJAP_REQ, strlen(AT_CWJAP_REQ)).withIntParameter("size", strlen(AT_CWJAP_REQ));
+	// mock uart receive
+	ringBuffer_pushArray(rx_buffer, (uint8_t*)AT_RESPONSE_NO_AP, strlen(AT_RESPONSE_NO_AP));
+	// call the function
+	Status response = IDLE;
+
+	while((response = Is_Wifi_Connected()) == IDLE);
+	//check
+	LONGS_EQUAL(STATUS_ERROR,response);
+}
+
+TEST(EspDriver_Test_Group, Is_Wifi_Connected_Ok_Test)
+{
+	// mock uart transmit
+	mock().expectOneCall("UART_Transmit_Fake").withParameter("data", (uint8_t*)AT_CWJAP_REQ, strlen(AT_CWJAP_REQ)).withIntParameter("size", strlen(AT_CWJAP_REQ));
+	// mock uart receive
+	ringBuffer_pushArray(rx_buffer, (uint8_t*)"+CWJAP:", strlen("+CWJAP:"));
+	// call the function
+	Status response = IDLE;
+
+	while((response = Is_Wifi_Connected()) == IDLE);
+	//check
+	LONGS_EQUAL(STATUS_OK,response);
+}

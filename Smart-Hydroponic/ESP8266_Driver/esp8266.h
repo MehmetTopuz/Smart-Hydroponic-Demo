@@ -27,6 +27,7 @@ extern "C"
 #define AT_CWMODE_STATION			"AT+CWMODE=1\r\n"
 #define	AT_CWQAP					"AT+CWQAP\r\n"
 #define AT_CWJAP					"AT+CWJAP="
+#define AT_CWJAP_REQ				"AT+CWJAP?\r\n"
 
 #define AT_CIPCLOSE					"AT+CIPCLOSE\r\n"
 #define AT_CIPMUX_SINGLE			"AT+CIPMUX=0\r\n"
@@ -37,6 +38,7 @@ extern "C"
 #define AT_RESPONSE_ERROR			"ERROR"
 #define AT_RESPONSE_SEND_OK			"SEND OK"
 #define AT_RESPONSE_GREATER_THAN	">"
+#define AT_RESPONSE_NO_AP			"No AP"
 
 #define TIMEOUT						10000UL	// millisecond
 
@@ -199,6 +201,8 @@ Status Wait_TCP_Message(char* receivedMessage, uint32_t timeout);
 Status Send_TCP_Bytes(uint8_t* buffer, size_t size);
 Status Disable_Echo_Mode(void);
 Status Is_Echo_Mode_Disabled(void);
+Status Is_Wifi_Connected(void);
+
 #ifdef __cplusplus
 }
 #endif
