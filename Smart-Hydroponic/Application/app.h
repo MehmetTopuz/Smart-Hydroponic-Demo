@@ -26,7 +26,7 @@
 #define MQTT_SUBSCRIBE_TOPIC		"topuz/sub"
 
 #define APP_TIMER_PERIOD			1000UL		// 1 second
-#define PUBLISH_PERIOD				10000UL
+#define PUBLISH_PERIOD				10UL
 
 int app_init(void);
 

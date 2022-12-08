@@ -288,7 +288,7 @@ Status Connect_TCP_Server(const char* ip, const char* port)
 	char *response_buffer[2] =
 	{
 		AT_RESPONSE_OK,
-		AT_RESPONSE_OK
+		AT_RESPONSE_CONNECT
 	};
 
 	char wifi_buffer[100] ={0};
@@ -558,7 +558,7 @@ Status Is_Wifi_Connected(void){
 		ringBuffer_flush(rx_buffer);
 		return STATUS_ERROR;
 	}
-	else if(ringBuffer_lookFor(rx_buffer, "+CWJAP:")){
+	else if(ringBuffer_lookFor(rx_buffer, (uint8_t*)"+CWJAP:") && ringBuffer_lookFor(rx_buffer, (uint8_t*)AT_RESPONSE_OK)){
 		is_first_call = 0;
 		ringBuffer_flush(rx_buffer);
 		return STATUS_OK;

@@ -37,6 +37,7 @@ extern "C"
 #define AT_RESPONSE_OK				"OK"
 #define AT_RESPONSE_ERROR			"ERROR"
 #define AT_RESPONSE_SEND_OK			"SEND OK"
+#define AT_RESPONSE_CONNECT			"CONNECT"
 #define AT_RESPONSE_GREATER_THAN	">"
 #define AT_RESPONSE_NO_AP			"No AP"
 

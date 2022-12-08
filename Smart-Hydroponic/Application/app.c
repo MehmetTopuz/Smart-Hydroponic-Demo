@@ -28,6 +28,16 @@ int app_init(void){
 
 	ESP_UART_RX_IT_ENABLE();
 
+	Status response = IDLE;
+
+	while((response = Is_Echo_Mode_Disabled()) == IDLE);
+
+	if(response == STATUS_ERROR)
+	  while((response = Disable_Echo_Mode()) == IDLE);
+
+	if(response == STATUS_ERROR)
+		printf("Error: Disable echo mode\n");
+
 	/*
 	 * TODO: IO init
 	 */
@@ -81,7 +91,7 @@ int app_init(void){
 								0,
 								timer_callback);
 
-
+	xTimerStart(soft_timer,0);
 //	Status response = IDLE;
 //
 //	while((response = Is_Echo_Mode_Disabled()) == IDLE);
@@ -156,12 +166,13 @@ void publisher_task(void *argument){
 	 */
 	xSemaphoreTake(broker_connected_sem, portMAX_DELAY);
 
-	char payload[100] = {0};
+	char payload[100] = "test message";
 	int number_of_tries = 0;
 
 	for(;;){
 
 		xSemaphoreTake(publisher_task_sem, portMAX_DELAY);
+//		vTaskDelay(pdMS_TO_TICKS(1000));
 		/*
 		 * TODO: Get all the variables that will be published.
 		 */
@@ -243,6 +254,7 @@ void listener_task(void *argument){
 
 			taskYIELD();
 		}
+		vTaskDelay(pdMS_TO_TICKS(1));
 
 	}
 }
@@ -250,34 +262,63 @@ void listener_task(void *argument){
 void broker_connect_task(void *argument){
 
 	Status response = IDLE;
+	int number_of_tries = 0;
 
 	for(;;){
 
-		/*
-		 * TODO: Verify the ESP's wifi connection status.
-		 */
+		while((response = Is_Wifi_Connected()) == IDLE);
 
-		while((response = Is_Echo_Mode_Disabled()) == IDLE);
+		if(response == STATUS_ERROR){
 
-		if(response == STATUS_ERROR)
-		  while((response = Disable_Echo_Mode()) == IDLE);
+			while(1){
+				number_of_tries++;
 
-		if(response != STATUS_OK)
-			printf("Error: Disable echo mode\n");
+				while((response = Connect_Wifi(WIFI_SSID, WIFI_PASSWORD)) == IDLE);
 
-		while((response = Connect_Wifi(WIFI_SSID, WIFI_PASSWORD)) == IDLE);
+				if(response != STATUS_OK)
+					printf("Error: Not connected to wifi.\n");
 
-		if(response != STATUS_OK)
-			printf("Error: Not connected to wifi.\n");
+				if(number_of_tries >= 3){
+					printf("Error: Three times of connecting attempts.\n");
+					while(1){
+						// TODO: handle the error properly.
+					}
+				}
 
-		while((response = mqtt_connect_broker(MQTT_BROKER_IP, MQTT_BROKER_PORT, MQTT_CLIENT_ID)) == IDLE);
+				while((response = Is_Wifi_Connected()) == IDLE);
 
-		if(response != STATUS_OK)
-			printf("Error: Not connected to broker.\n");
+				if(response == STATUS_OK)
+					break;
 
-		/*
-		 * TODO: check broker connection
-		 */
+			}
+
+		}
+		number_of_tries = 0;
+//
+//		while(1){
+
+			while((response = mqtt_connect_broker(MQTT_BROKER_IP, MQTT_BROKER_PORT, MQTT_CLIENT_ID)) == IDLE);
+
+			if(response != STATUS_OK)
+				printf("Error: Not connected to broker.\n");
+
+			/*
+			 * Check broker connection.
+			 */
+
+//			while((response = mqtt_ping_request()) == IDLE);
+//
+//			if((response == STATUS_ERROR) || (response == TIMEOUT_ERROR))
+//				 number_of_tries++;
+			if(response == STATUS_OK)
+			 {
+				 printf("Connected to the broker.\n");
+				 number_of_tries = 0;
+//				 break;
+			 }
+
+//
+//		}
 
 		/*
 		 * TODO: Create a wrapper function in order to subscribe multiple topics.
@@ -286,7 +327,9 @@ void broker_connect_task(void *argument){
 
 		if(response != STATUS_OK)
 			printf("Error: Subscribe is not successful -> %s.\n", MQTT_SUBSCRIBE_TOPIC);
-
+		else{
+			printf("Subscribe is successful -> \"%s\".\n", MQTT_SUBSCRIBE_TOPIC);
+		}
 		/* release semaphore for use in other tasks.*/
 		xSemaphoreGive(broker_connected_sem);
 //		xSemaphoreGive(publisher_task_sem);
@@ -304,7 +347,7 @@ void command_process_task(void *argument){
 
 	for(;;){
 
-
+		vTaskDelay(pdMS_TO_TICKS(1000));
 
 	}
 }
@@ -325,7 +368,11 @@ void timer_callback(TimerHandle_t xTimer){
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName ){
 
-	printf("%Stack Over Flow Error: %s\n", (char*)pcTaskName);
+	printf("Stack Over Flow Error: %s\n", (char*)pcTaskName);
 }
+/* configUSE_MALLOC_FAILED_HOOK must be set to 1*/
 
+void vApplicationMallocFailedHook( void ){
 
+	printf("Malloc Failed!\n");
+}
