@@ -114,7 +114,7 @@ uint32_t Read_Response(char * response);
  * @retval	TIMEOUT_ERROR	:It returns when timeout occurs.
  * @retval	IDLE			:If there is not a string in the buffer and timeout does not occur yet, it returns IDLE.
  */
-Status Wait_Response(char * response, uint32_t timeout);
+Status Wait_Response(char * response, size_t size, uint32_t timeout);
 
 /**
  * @brief 	This function handles AT commands to connect the wifi.
@@ -203,6 +203,7 @@ Status Send_TCP_Bytes(uint8_t* buffer, size_t size);
 Status Disable_Echo_Mode(void);
 Status Is_Echo_Mode_Disabled(void);
 Status Is_Wifi_Connected(void);
+void clear_ESP_ring_buffer(void);
 
 #ifdef __cplusplus
 }

@@ -23,7 +23,7 @@ extern "C"
 
 #define MQTT_KEEP_ALIVE					(uint16_t)60
 #define MQTT_PING_REQUEST				(uint8_t)0xC0
-#define MQTT_PING_RESPONSE				(uint8_t)0xC1
+#define MQTT_PING_RESPONSE				(uint8_t)0xD0
 #define MQTT_PUBLISH_HEADER				(uint8_t)0x30
 #define MQTT_DISCONNECT_HEADER			(uint8_t)0xE0
 

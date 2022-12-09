@@ -14,6 +14,17 @@
 #include "timers.h"
 
 
+#define UART_DEBUG					//  Change this line to comment if you do not want to print debug messages.
+
+#ifdef	UART_DEBUG
+
+#define debug_printf			printf
+
+#else
+
+#define debug_printf(...)			(void)0
+#endif
+
 #define ESP_IO_GetTick				HAL_GetTick
 #define ESP_UART_RING_BUFFER_SIZE	1024
 #define MQTT_RING_BUFFER_SIZE		1024

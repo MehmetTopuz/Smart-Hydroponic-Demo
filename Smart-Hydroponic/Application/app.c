@@ -36,7 +36,7 @@ int app_init(void){
 	  while((response = Disable_Echo_Mode()) == IDLE);
 
 	if(response == STATUS_ERROR)
-		printf("Error: Disable echo mode\n");
+		debug_printf("Error: Disable echo mode\n");
 
 	/*
 	 * TODO: IO init
@@ -59,30 +59,30 @@ int app_init(void){
 
 	xTaskCreate(broker_connect_task,
 				"Broker Connect Task",
-				255,
+				512,
 				NULL,
 				0,
 				NULL);
 
 	xTaskCreate(publisher_task,
 				"Publish Task",
-				255,
+				512,
 				NULL,
 				0,
 				NULL);
 
 	xTaskCreate(listener_task,
 				"Listener Task",
-				255,
+				512,
 				NULL,
 				0,
 				NULL);
 
 	xTaskCreate(command_process_task,
 				"Command Process Task",
-				255,
+				512,
 				NULL,
-				1,
+				0,
 				NULL);
 
 	soft_timer = xTimerCreate("Timer",
@@ -92,6 +92,7 @@ int app_init(void){
 								timer_callback);
 
 	xTimerStart(soft_timer,0);
+
 //	Status response = IDLE;
 //
 //	while((response = Is_Echo_Mode_Disabled()) == IDLE);
@@ -158,6 +159,96 @@ int app_run(void){
 	  return 1;
 }
 
+void broker_connect_task(void *argument){
+
+	Status response = IDLE;
+	int number_of_tries = 0;
+
+	for(;;){
+
+		while((response = Is_Wifi_Connected()) == IDLE);
+
+		if(response == STATUS_ERROR){
+
+			while(1){
+				number_of_tries++;
+
+				while((response = Connect_Wifi(WIFI_SSID, WIFI_PASSWORD)) == IDLE);
+
+				if(response != STATUS_OK)
+					debug_printf("Error: Not connected to wifi.\n");
+
+				if(number_of_tries >= 3){
+					debug_printf("Error: Three times of connecting attempts.\n");
+					while(1){
+						// TODO: handle the error properly.
+					}
+				}
+
+				while((response = Is_Wifi_Connected()) == IDLE);
+
+				if(response == STATUS_OK)
+					break;
+
+			}
+
+		}
+		number_of_tries = 0;
+
+		while(1){
+
+			while((response = mqtt_connect_broker(MQTT_BROKER_IP, MQTT_BROKER_PORT, MQTT_CLIENT_ID)) == IDLE);
+
+			if(response != STATUS_OK)
+				debug_printf("Error: Not connected to broker.\n");
+
+			else{
+				/*
+				 * Check broker connection.
+				 */
+
+				while((response = mqtt_ping_request()) == IDLE);
+
+				if(response == STATUS_OK)
+				 {
+					debug_printf("Connected to the broker.\n");
+					 number_of_tries = 0;
+					 break;
+				 }
+			}
+
+			if((response == STATUS_ERROR) || (response == TIMEOUT_ERROR))
+				 number_of_tries++;
+
+			if(number_of_tries >= 3){
+				debug_printf("Error: Three unsuccessful attempts.\n");
+				break;
+			}
+
+		}
+
+		/*
+		 * TODO: Create a wrapper function in order to subscribe multiple topics.
+		 */
+		while((response = mqtt_subcribe(MQTT_SUBSCRIBE_TOPIC)) == IDLE);
+
+		if(response != STATUS_OK)
+			debug_printf("Error: Subscribe is not successful -> %s.\n", MQTT_SUBSCRIBE_TOPIC);
+		else{
+			debug_printf("Subscribe is successful -> \"%s\".\n", MQTT_SUBSCRIBE_TOPIC);
+		}
+		/* release semaphore for use in other tasks.*/
+		xSemaphoreGive(broker_connected_sem);
+//		xSemaphoreGive(publisher_task_sem);
+		xSemaphoreGive(listener_task_sem);
+
+		xSemaphoreTake(broker_connection_sem,portMAX_DELAY);
+//		clear_ESP_ring_buffer();
+
+
+	}
+}
+
 void publisher_task(void *argument){
 
 	/*
@@ -195,15 +286,15 @@ void publisher_task(void *argument){
 				taskYIELD();
 			}
 			else if(response == STATUS_ERROR){
-				printf("ERROR: Publish Error!\nReturn type: STATUS_ERROR.\n");
+				debug_printf("ERROR: Publish Error!\nReturn type: STATUS_ERROR.\n");
 				number_of_tries++;
 			}
 			else if(response == TIMEOUT_ERROR){
-				printf("ERROR: Publish Error!\nReturn type: TIMEOUT_ERROR.\n");
+				debug_printf("ERROR: Publish Error!\nReturn type: TIMEOUT_ERROR.\n");
 				number_of_tries++;
 			}
 			else if(response == STATUS_OK){
-				printf("Publish is successful.\n%d bytes sent.\n", strlen(payload));
+				debug_printf("Publish is successful.\n \"%s\"->%d bytes sent.\n",payload, strlen(payload));
 				number_of_tries = 0;
 				break;
 			}
@@ -228,7 +319,7 @@ void listener_task(void *argument){
 	 * All tasks need to be suspended at first.
 	 * As a result, we need a blocking object, like a semaphore.
 	 */
-	xSemaphoreTake(broker_connected_sem, portMAX_DELAY);
+	xSemaphoreTake(listener_task_sem, portMAX_DELAY);
 
 	int32_t result = 0;
 	MQTT_Publish_Packet received_packet = {0};
@@ -255,88 +346,6 @@ void listener_task(void *argument){
 			taskYIELD();
 		}
 		vTaskDelay(pdMS_TO_TICKS(1));
-
-	}
-}
-
-void broker_connect_task(void *argument){
-
-	Status response = IDLE;
-	int number_of_tries = 0;
-
-	for(;;){
-
-		while((response = Is_Wifi_Connected()) == IDLE);
-
-		if(response == STATUS_ERROR){
-
-			while(1){
-				number_of_tries++;
-
-				while((response = Connect_Wifi(WIFI_SSID, WIFI_PASSWORD)) == IDLE);
-
-				if(response != STATUS_OK)
-					printf("Error: Not connected to wifi.\n");
-
-				if(number_of_tries >= 3){
-					printf("Error: Three times of connecting attempts.\n");
-					while(1){
-						// TODO: handle the error properly.
-					}
-				}
-
-				while((response = Is_Wifi_Connected()) == IDLE);
-
-				if(response == STATUS_OK)
-					break;
-
-			}
-
-		}
-		number_of_tries = 0;
-//
-//		while(1){
-
-			while((response = mqtt_connect_broker(MQTT_BROKER_IP, MQTT_BROKER_PORT, MQTT_CLIENT_ID)) == IDLE);
-
-			if(response != STATUS_OK)
-				printf("Error: Not connected to broker.\n");
-
-			/*
-			 * Check broker connection.
-			 */
-
-//			while((response = mqtt_ping_request()) == IDLE);
-//
-//			if((response == STATUS_ERROR) || (response == TIMEOUT_ERROR))
-//				 number_of_tries++;
-			if(response == STATUS_OK)
-			 {
-				 printf("Connected to the broker.\n");
-				 number_of_tries = 0;
-//				 break;
-			 }
-
-//
-//		}
-
-		/*
-		 * TODO: Create a wrapper function in order to subscribe multiple topics.
-		 */
-		while((response = mqtt_subcribe(MQTT_SUBSCRIBE_TOPIC)) == IDLE);
-
-		if(response != STATUS_OK)
-			printf("Error: Subscribe is not successful -> %s.\n", MQTT_SUBSCRIBE_TOPIC);
-		else{
-			printf("Subscribe is successful -> \"%s\".\n", MQTT_SUBSCRIBE_TOPIC);
-		}
-		/* release semaphore for use in other tasks.*/
-		xSemaphoreGive(broker_connected_sem);
-//		xSemaphoreGive(publisher_task_sem);
-//		xSemaphoreGive(listener_task_sem);
-
-		xSemaphoreTake(broker_connection_sem,portMAX_DELAY);
-
 
 	}
 }
@@ -368,11 +377,11 @@ void timer_callback(TimerHandle_t xTimer){
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
                                     signed char *pcTaskName ){
 
-	printf("Stack Over Flow Error: %s\n", (char*)pcTaskName);
+	debug_printf("Stack Over Flow Error: %s\n", (char*)pcTaskName);
 }
 /* configUSE_MALLOC_FAILED_HOOK must be set to 1*/
 
 void vApplicationMallocFailedHook( void ){
 
-	printf("Malloc Failed!\n");
+	debug_printf("Malloc Failed!\n");
 }

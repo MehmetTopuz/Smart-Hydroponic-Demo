@@ -199,7 +199,7 @@ Status mqtt_ping_request(void){
 			return response;
 	}
 	if(state){
-		response = Wait_Response((char*)pingRespacket, TIMEOUT);		// TODO: There is a bug here. Fix it.
+		response = Wait_Response((char*)pingRespacket, 2, TIMEOUT);		// TODO: There is a bug here. Fix it.
 		if(response == FOUND){
 			state = 0;
 			response = STATUS_OK;

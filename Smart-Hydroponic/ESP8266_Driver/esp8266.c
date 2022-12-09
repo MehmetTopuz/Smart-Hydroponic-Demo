@@ -103,7 +103,7 @@ uint32_t Read_Response(char * response)
  * @retval	TIMEOUT_ERROR	:It returns when timeout occurs.
  * @retval	IDLE			:If there is not a string in the buffer and timeout does not occur yet, it returns IDLE.
  */
-Status Wait_Response(char* response, uint32_t timeout)
+Status Wait_Response(char* response, size_t size, uint32_t timeout)
 {
 
 	static uint32_t time = 0;
@@ -114,7 +114,7 @@ Status Wait_Response(char* response, uint32_t timeout)
 		time = ESP8266.getTick();
 		firstCall = 1;
 	}
-	if(array_search(rx_buffer->buffer, (uint8_t*)response, rx_buffer->size, strlen(response)))
+	if(array_search(rx_buffer->buffer, (uint8_t*)response, rx_buffer->size, size))
 		{
 			firstCall = 0;
 			time = 0;
@@ -223,7 +223,7 @@ Status Command_Process(char **commandArray, char **responseArray, uint8_t number
 			Send_AT_Command(commandArray[currentCommand],strlen(commandArray[currentCommand]));
 			commandFlag = 0;
 		}
-			response = Wait_Response(responseArray[currentCommand], TIMEOUT);
+			response = Wait_Response(responseArray[currentCommand], strlen(responseArray[currentCommand]), TIMEOUT);
 
 			if(Read_Response("ERROR"))
 			{
@@ -468,7 +468,7 @@ Status Send_TCP_Bytes(uint8_t* buffer, size_t size)
 		isFirstCall = 1;
 	}
 
-	response = Wait_Response(response_buffer[commandCount], TIMEOUT);
+	response = Wait_Response(response_buffer[commandCount], strlen(response_buffer[commandCount]), TIMEOUT);
 
 if(response == FOUND)
 	{
@@ -526,7 +526,7 @@ Status Is_Echo_Mode_Disabled(void){
 		isFirstCall = 1;
 	}
 
-	response = Wait_Response("AT\r\r\n\r\nOK", 1000);
+	response = Wait_Response("AT\r\r\n\r\nOK", strlen("AT\r\r\n\r\nOK"), 1000);
 
 	if(response == FOUND){
 		ringBuffer_flush(rx_buffer);
@@ -551,7 +551,7 @@ Status Is_Wifi_Connected(void){
 		is_first_call = 1;
 	}
 
-	response = Wait_Response(AT_RESPONSE_NO_AP, TIMEOUT);
+	response = Wait_Response(AT_RESPONSE_NO_AP, strlen(AT_RESPONSE_NO_AP), TIMEOUT);
 
 	if(response == FOUND){
 		is_first_call = 0;
@@ -566,4 +566,8 @@ Status Is_Wifi_Connected(void){
 
 	return response;
 
+}
+
+void clear_ESP_ring_buffer(void){
+	ringBuffer_flush(rx_buffer);
 }
