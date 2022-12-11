@@ -15,6 +15,10 @@ static SemaphoreHandle_t publisher_task_sem, broker_connection_sem, listener_tas
 
 static TimerHandle_t soft_timer;
 
+static QueueHandle_t command_queue;
+
+MQTT_Publish_Packet received_packet = {0};
+
 int app_init(void){
 
 	if(ESP_Init(esp_uart_send_bytes,				// UART transmit function
@@ -55,6 +59,10 @@ int app_init(void){
 
 	listener_task_sem = xSemaphoreCreateBinary();
 
+	/* create a queue for command process.*/
+
+	command_queue = xQueueCreate(10, sizeof(commands));
+
 	/* Create Tasks */
 
 	xTaskCreate(broker_connect_task,
@@ -82,7 +90,7 @@ int app_init(void){
 				"Command Process Task",
 				512,
 				NULL,
-				0,
+				1,
 				NULL);
 
 	soft_timer = xTimerCreate("Timer",
@@ -322,7 +330,8 @@ void listener_task(void *argument){
 	xSemaphoreTake(listener_task_sem, portMAX_DELAY);
 
 	int32_t result = 0;
-	MQTT_Publish_Packet received_packet = {0};
+//	MQTT_Publish_Packet received_packet = {0};
+	commands cmd;
 
 	for(;;){
 		/*
@@ -337,26 +346,52 @@ void listener_task(void *argument){
 			/*
 			 * TODO: Add command to command queue.
 			 */
-			if(strcmp(received_packet.message,"LED_TOGGLE") == 0){
-			  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+			if(strcmp(received_packet.message,"PUMP_MOTOR_ON") == 0){
+				cmd = pump_motor_on;
+				xQueueSendToBack(command_queue, &cmd,0);
+				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+				memset(received_packet.message, 0, 100);
 			}
-
+			else if(strcmp(received_packet.message,"PUMP_MOTOR_OFF") == 0){
+				cmd = pump_motor_off;
+				xQueueSendToBack(command_queue, &cmd,0);
+				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+				memset(received_packet.message, 0, 100);
+			}
+			else if(strcmp(received_packet.message,"LIGHTS_ON") == 0){
+				cmd = lights_on;
+				xQueueSendToBack(command_queue, &cmd,0);
+				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+				memset(received_packet.message, 0, 100);
+			}
+			else if(strcmp(received_packet.message,"LIGHTS_OFF") == 0){
+				cmd = lights_off;
+				xQueueSendToBack(command_queue, &cmd,0);
+				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+				memset(received_packet.message, 0, 100);
+			}
 			mqtt_clear_buffer();
 
-			taskYIELD();
+
 		}
-		vTaskDelay(pdMS_TO_TICKS(1));
+//		vTaskDelay(pdMS_TO_TICKS(1));
 
 	}
 }
 
 void command_process_task(void *argument){
 
+	BaseType_t queue_status = pdPASS;
+	commands received_command = shut_down;
 
 
 	for(;;){
 
-		vTaskDelay(pdMS_TO_TICKS(1000));
+		queue_status = xQueueReceive(command_queue, &received_command, portMAX_DELAY);
+
+		if(queue_status == pdPASS){
+			command_handler(received_command);
+		}
 
 	}
 }
@@ -384,4 +419,48 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask,
 void vApplicationMallocFailedHook( void ){
 
 	debug_printf("Malloc Failed!\n");
+}
+
+void command_handler(commands cmd){
+
+	switch (cmd) {
+		case pump_motor_on:
+			printf("Command captured: pump_motor_on\n");
+			break;
+		case pump_motor_off:
+			printf("Command captured: pump_motor_off\n");
+			break;
+		case lights_on:
+			printf("Command captured: lights_on\n");
+			break;
+		case lights_off:
+			printf("Command captured: lights_off\n");
+			break;
+		case valve_on:
+			printf("Command captured: valve_on\n");
+			break;
+		case valve_off:
+			printf("Command captured: valve_off\n");
+			break;
+		case air_conditioner_on:
+			printf("Command captured: air_conditioner_on\n");
+			break;
+		case air_conditioner_off:
+			printf("Command captured: air_conditioner_off\n");
+			break;
+		case dosing_pump_on:
+			printf("Command captured: dosing_pump_on\n");
+			break;
+		case dosing_pump_off:
+			printf("Command captured: dosing_pump_off\n");
+			break;
+		case alarm_on:
+			printf("Command captured: alarm_on\n");
+			break;
+		case alarm_off:
+			printf("Command captured: alarm_off\n");
+			break;
+		default:
+			break;
+	}
 }

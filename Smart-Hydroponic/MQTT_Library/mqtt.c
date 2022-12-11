@@ -332,6 +332,7 @@ int32_t mqtt_read_message(MQTT_Publish_Packet *packet, const char *topic){
 	packet->remainLength = mqtt_rx_buffer->buffer[position-3];
 	packet->publishPacketByte = mqtt_rx_buffer->buffer[position-4];
 	memcpy(packet->message,&mqtt_rx_buffer->buffer[position+topic_length],packet->remainLength - packet->topicLength - 2);
+//	packet->message[packet->remainLength - packet->topicLength - 1] = '\0';
 	memcpy(packet->topic,&mqtt_rx_buffer->buffer[position],topic_length);
 	ringBuffer_flush(mqtt_rx_buffer);
 	// return message size
