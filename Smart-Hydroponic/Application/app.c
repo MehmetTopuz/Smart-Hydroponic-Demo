@@ -350,31 +350,32 @@ void listener_task(void *argument){
 				cmd = pump_motor_on;
 				xQueueSendToBack(command_queue, &cmd,0);
 				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-				memset(received_packet.message, 0, 100);
+				//memset(received_packet.message, 0, 100);
 			}
 			else if(strcmp(received_packet.message,"PUMP_MOTOR_OFF") == 0){
 				cmd = pump_motor_off;
 				xQueueSendToBack(command_queue, &cmd,0);
 				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-				memset(received_packet.message, 0, 100);
+				//memset(received_packet.message, 0, 100);
 			}
 			else if(strcmp(received_packet.message,"LIGHTS_ON") == 0){
 				cmd = lights_on;
 				xQueueSendToBack(command_queue, &cmd,0);
 				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-				memset(received_packet.message, 0, 100);
+				//memset(received_packet.message, 0, 100);
 			}
 			else if(strcmp(received_packet.message,"LIGHTS_OFF") == 0){
 				cmd = lights_off;
 				xQueueSendToBack(command_queue, &cmd,0);
 				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-				memset(received_packet.message, 0, 100);
+
 			}
+			memset(received_packet.message, 0, sizeof(received_packet.message));
 			mqtt_clear_buffer();
 
 
 		}
-//		vTaskDelay(pdMS_TO_TICKS(1));
+		vTaskDelay(pdMS_TO_TICKS(50));
 
 	}
 }
