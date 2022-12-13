@@ -58,7 +58,8 @@ typedef enum{
 	dosing_pump_off,
 	alarm_on,
 	alarm_off,
-}commands;
+	idle
+}commands_t;
 
 int app_init(void);
 
@@ -74,10 +75,12 @@ void command_process_task(void *argument);
 
 void timer_callback(TimerHandle_t xTimer);
 
-void command_handler(commands cmd);
+void command_handler(commands_t cmd);
 
 int mqtt_read_command(MQTT_Publish_Packet *packet, const char **topic_array);
 
 void subscribe_topics(const char **topics);
+
+commands_t string_to_cmd(MQTT_Publish_Packet *packet);
 
 #endif /* APP_H_ */

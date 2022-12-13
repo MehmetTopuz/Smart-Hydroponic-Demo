@@ -14,7 +14,7 @@ static TimerHandle_t soft_timer;
 
 static QueueHandle_t command_queue;
 
-const char *topic_list[50] = {
+static const char *topic_list[50] = {
 		"hydroponic/lights",
 		"hydroponic/pump",
 		"hydroponic/valve",
@@ -22,6 +22,23 @@ const char *topic_list[50] = {
 		"hydroponic/dosing_pump",
 		"hydroponic/alarm",
 		NULL};
+
+static const char *command_list[50] = {
+		"SHUT_DOWN",
+		"PUMP_MOTOR_ON",
+		"PUMP_MOTOR_OFF",
+		"LIGHTS_ON",
+		"LIGHTS_OFF",
+		"VALVE_ON",
+		"VALVE_OFF",
+		"AIR_CONDITIONER_ON",
+		"AIR_CONDITIONER_OFF",
+		"DOSING_PUMP_ON",
+		"DOSING_PUMP_OFF",
+		"ALARM_ON",
+		"ALARM_OFF",
+		NULL
+};
 
 int app_init(void){
 
@@ -65,7 +82,7 @@ int app_init(void){
 
 	/* create a queue for command process.*/
 
-	command_queue = xQueueCreate(10, sizeof(commands));
+	command_queue = xQueueCreate(10, sizeof(commands_t));
 
 	/* Create Tasks */
 
@@ -266,63 +283,19 @@ void listener_task(void *argument){
 
 	int32_t result = 0;
 	MQTT_Publish_Packet received_packet = {0};
-	commands cmd;
+	commands_t cmd;
 
 	for(;;){
-		/*
-		 * TODO: Write a wrapper function for read message.
-		 * This function must have a string array that include topics.
-		 *
-		 */
+
 		result = mqtt_read_command(&received_packet, topic_list);
 
 		if(result > 0){
 
-			/*
-			 * TODO:
-			 * - Add command to command queue.
-			 * - Create command list.
-			 * - Create a wrapper list for command list.
-			 */
-			if(strcmp(received_packet.message,"PUMP_MOTOR_ON") == 0){
-				cmd = pump_motor_on;
-				xQueueSendToBack(command_queue, &cmd,0);
-				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-				//memset(received_packet.message, 0, 100);
-			}
-			else if(strcmp(received_packet.message,"PUMP_MOTOR_OFF") == 0){
-				cmd = pump_motor_off;
-				xQueueSendToBack(command_queue, &cmd,0);
-				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-				//memset(received_packet.message, 0, 100);
-			}
-			else if(strcmp(received_packet.message,"LIGHTS_ON") == 0){
-				cmd = lights_on;
-				xQueueSendToBack(command_queue, &cmd,0);
-				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-				//memset(received_packet.message, 0, 100);
-			}
-			else if(strcmp(received_packet.message,"LIGHTS_OFF") == 0){
-				cmd = lights_off;
-				xQueueSendToBack(command_queue, &cmd,0);
-				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-
-			}
-			else if(strcmp(received_packet.message,"VALVE_ON") == 0){
-				cmd = valve_on;
-				xQueueSendToBack(command_queue, &cmd,0);
-				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-				//memset(received_packet.message, 0, 100);
-			}
-			else if(strcmp(received_packet.message,"VALVE_OFF") == 0){
-				cmd = valve_off;
-				xQueueSendToBack(command_queue, &cmd,0);
-				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-
-			}
+			cmd = string_to_cmd(&received_packet);
+			xQueueSendToBack(command_queue, &cmd,0);
+			HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
 			memset(received_packet.message, 0, sizeof(received_packet.message));
 			mqtt_clear_buffer();
-
 
 		}
 		vTaskDelay(pdMS_TO_TICKS(50));
@@ -333,7 +306,7 @@ void listener_task(void *argument){
 void command_process_task(void *argument){
 
 	BaseType_t queue_status = pdPASS;
-	commands received_command = shut_down;
+	commands_t received_command = shut_down;
 
 
 	for(;;){
@@ -372,44 +345,44 @@ void vApplicationMallocFailedHook( void ){
 	debug_printf("Malloc Failed!\n");
 }
 
-void command_handler(commands cmd){
+void command_handler(commands_t cmd){
 
 	switch (cmd) {
 		case pump_motor_on:
-			printf("Command captured: pump_motor_on\n");
+			debug_printf("Command captured: pump_motor_on\n");
 			break;
 		case pump_motor_off:
-			printf("Command captured: pump_motor_off\n");
+			debug_printf("Command captured: pump_motor_off\n");
 			break;
 		case lights_on:
-			printf("Command captured: lights_on\n");
+			debug_printf("Command captured: lights_on\n");
 			break;
 		case lights_off:
-			printf("Command captured: lights_off\n");
+			debug_printf("Command captured: lights_off\n");
 			break;
 		case valve_on:
-			printf("Command captured: valve_on\n");
+			debug_printf("Command captured: valve_on\n");
 			break;
 		case valve_off:
-			printf("Command captured: valve_off\n");
+			debug_printf("Command captured: valve_off\n");
 			break;
 		case air_conditioner_on:
-			printf("Command captured: air_conditioner_on\n");
+			debug_printf("Command captured: air_conditioner_on\n");
 			break;
 		case air_conditioner_off:
-			printf("Command captured: air_conditioner_off\n");
+			debug_printf("Command captured: air_conditioner_off\n");
 			break;
 		case dosing_pump_on:
-			printf("Command captured: dosing_pump_on\n");
+			debug_printf("Command captured: dosing_pump_on\n");
 			break;
 		case dosing_pump_off:
-			printf("Command captured: dosing_pump_off\n");
+			debug_printf("Command captured: dosing_pump_off\n");
 			break;
 		case alarm_on:
-			printf("Command captured: alarm_on\n");
+			debug_printf("Command captured: alarm_on\n");
 			break;
 		case alarm_off:
-			printf("Command captured: alarm_off\n");
+			debug_printf("Command captured: alarm_off\n");
 			break;
 		default:
 			break;
@@ -441,4 +414,18 @@ void subscribe_topics(const char **topics){
 			debug_printf("Subscribe is successful -> \"%s\".\n", topics[idx++]);
 	}
 
+}
+
+commands_t string_to_cmd(MQTT_Publish_Packet *packet){
+
+	int idx = 0;
+
+	while(command_list[idx]){
+		if(strcmp(packet->message, command_list[idx]) == 0)
+			return (commands_t)idx;
+		else
+			idx++;
+	}
+
+	return idle;
 }
