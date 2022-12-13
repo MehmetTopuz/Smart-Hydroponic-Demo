@@ -6,9 +6,6 @@
  */
 
 #include "app.h"
-#include "hydroponic_io.h"
-#include "mqtt.h"
-#include "string.h"
 
 
 static SemaphoreHandle_t publisher_task_sem, broker_connection_sem, listener_task_sem, broker_connected_sem;
@@ -17,7 +14,14 @@ static TimerHandle_t soft_timer;
 
 static QueueHandle_t command_queue;
 
-MQTT_Publish_Packet received_packet = {0};
+const char *topic_list[50] = {
+		"hydroponic/lights",
+		"hydroponic/pump",
+		"hydroponic/valve",
+		"hydroponic/air_conditioner",
+		"hydroponic/dosing_pump",
+		"hydroponic/alarm",
+		NULL};
 
 int app_init(void){
 
@@ -101,70 +105,8 @@ int app_init(void){
 
 	xTimerStart(soft_timer,0);
 
-//	Status response = IDLE;
-//
-//	while((response = Is_Echo_Mode_Disabled()) == IDLE);
-//
-//	if(response == STATUS_ERROR)
-//	  while((response = Disable_Echo_Mode()) == IDLE);
-//
-//	if(response != STATUS_OK)
-//		return -1;
-//
-//	while((response = Connect_Wifi(WIFI_SSID, WIFI_PASSWORD)) == IDLE);
-//
-//	if(response != STATUS_OK)
-//		return -1;
-//
-//	while((response = mqtt_connect_broker(MQTT_BROKER_IP, MQTT_BROKER_PORT, MQTT_CLIENT_ID)) == IDLE);
-//
-//	if(response != STATUS_OK)
-//		return -1;
-//
-//	while((response = mqtt_subcribe(MQTT_SUBSCRIBE_TOPIC)) == IDLE);
-//
-//	if(response != STATUS_OK)
-//		return -1;
-
 	return 1;
 
-}
-
-int app_run(void){
-
-//	  int result = 0;
-//	  MQTT_Publish_Packet received_packet = {0};
-//	  char payload[100];
-//	  uint32_t lastTick=0;
-//	  uint32_t local_time = 0;
-//	  uint32_t hour=0,minute=0,second=0;
-//	  Status response;
-//	  while (1)
-//	  {
-//
-//		  if(HAL_GetTick() - lastTick >= 1000){
-//			  lastTick = HAL_GetTick();
-//			  local_time++;
-//			  hour = local_time/3600;
-//			  minute = local_time/60;
-//			  second = local_time%60;
-//			  sprintf(payload,"Local time:%.2d:%.2d:%.2d",hour,minute,second);
-//			  while((response = mqtt_publish_message("topuz/test", payload)) == IDLE);
-//
-//		  }
-//
-//		  result = mqtt_read_message(&received_packet, "topuz/sub");
-//		  if(result>0)
-//		  {
-//			  if(strcmp(received_packet.message,"LED_TOGGLE") == 0){
-//				  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-//				  //while((response = mqtt_disconnect_broker()) == IDLE );
-//			  }
-//
-//			  mqtt_clear_buffer();
-//		  }
-//	  }
-	  return 1;
 }
 
 void broker_connect_task(void *argument){
@@ -235,23 +177,16 @@ void broker_connect_task(void *argument){
 
 		}
 
-		/*
-		 * TODO: Create a wrapper function in order to subscribe multiple topics.
-		 */
-		while((response = mqtt_subcribe(MQTT_SUBSCRIBE_TOPIC)) == IDLE);
+		/* send subscribe requests.*/
+		subscribe_topics(topic_list);
 
-		if(response != STATUS_OK)
-			debug_printf("Error: Subscribe is not successful -> %s.\n", MQTT_SUBSCRIBE_TOPIC);
-		else{
-			debug_printf("Subscribe is successful -> \"%s\".\n", MQTT_SUBSCRIBE_TOPIC);
-		}
 		/* release semaphore for use in other tasks.*/
 		xSemaphoreGive(broker_connected_sem);
 //		xSemaphoreGive(publisher_task_sem);
 		xSemaphoreGive(listener_task_sem);
 
 		xSemaphoreTake(broker_connection_sem,portMAX_DELAY);
-//		clear_ESP_ring_buffer();
+
 
 
 	}
@@ -288,7 +223,7 @@ void publisher_task(void *argument){
 			/*
 			 * TODO: Add a mutex here for UART.
 			 */
-			response = mqtt_publish_message("topuz/test", payload);
+			response = mqtt_publish_message("hydroponic/test", payload);
 
 			if(response == IDLE){		// If the library is awaiting an answer from the ESP, execute the following task.
 				taskYIELD();
@@ -330,7 +265,7 @@ void listener_task(void *argument){
 	xSemaphoreTake(listener_task_sem, portMAX_DELAY);
 
 	int32_t result = 0;
-//	MQTT_Publish_Packet received_packet = {0};
+	MQTT_Publish_Packet received_packet = {0};
 	commands cmd;
 
 	for(;;){
@@ -339,12 +274,15 @@ void listener_task(void *argument){
 		 * This function must have a string array that include topics.
 		 *
 		 */
-		result = mqtt_read_message(&received_packet, "topuz/sub");
+		result = mqtt_read_command(&received_packet, topic_list);
 
 		if(result > 0){
 
 			/*
-			 * TODO: Add command to command queue.
+			 * TODO:
+			 * - Add command to command queue.
+			 * - Create command list.
+			 * - Create a wrapper list for command list.
 			 */
 			if(strcmp(received_packet.message,"PUMP_MOTOR_ON") == 0){
 				cmd = pump_motor_on;
@@ -366,6 +304,18 @@ void listener_task(void *argument){
 			}
 			else if(strcmp(received_packet.message,"LIGHTS_OFF") == 0){
 				cmd = lights_off;
+				xQueueSendToBack(command_queue, &cmd,0);
+				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+
+			}
+			else if(strcmp(received_packet.message,"VALVE_ON") == 0){
+				cmd = valve_on;
+				xQueueSendToBack(command_queue, &cmd,0);
+				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+				//memset(received_packet.message, 0, 100);
+			}
+			else if(strcmp(received_packet.message,"VALVE_OFF") == 0){
+				cmd = valve_off;
 				xQueueSendToBack(command_queue, &cmd,0);
 				HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
 
@@ -464,4 +414,31 @@ void command_handler(commands cmd){
 		default:
 			break;
 	}
+}
+
+int mqtt_read_command(MQTT_Publish_Packet *packet, const char **topic_array){
+
+	int result = 0, idx = 0;
+
+	while(topic_array[idx]){
+		if((result = mqtt_read_message(packet, topic_array[idx++])) > 0)
+			return result;
+	}
+	return result;
+}
+
+
+void subscribe_topics(const char **topics){
+
+	Status response = IDLE;
+	int idx = 0;
+	while(topics[idx]){
+		while((response = mqtt_subcribe(topics[idx])) == IDLE);
+
+		if(response != STATUS_OK)
+			debug_printf("Error: Subscribe is not successful -> %s.\n", topics[idx++]);
+		else
+			debug_printf("Subscribe is successful -> \"%s\".\n", topics[idx++]);
+	}
+
 }

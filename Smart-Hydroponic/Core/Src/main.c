@@ -175,73 +175,16 @@ int main(void)
 	  vTaskStartScheduler();
   }
 
-  app_run();
-//  ESP_Init(UART_SendMessage,	// UART transmit function
-//  		  UART_ReceiveByte,		// UART receive function
-//  		  HAL_GetTick,			// get tick function
-//  		  1024					// UART ring buffer size
-//  		  );
-//
-//  mqtt_init((size_t)1024);
-//
-//  USART1->CR1 |= (1<<5); // rx interrupt enable
-//
-//
-//  char ssid[] = "Topuz";
-//  char password[] = "tmhm4545.";
-////  Send_AT_Command("AT+RST\r\n", strlen("AT+RST\r\n"));
-//  HAL_Delay(2000);
-//
-//  while((response = Is_Echo_Mode_Disabled()) == IDLE);
-//
-//  if(response == STATUS_ERROR)
-//	  while((response = Disable_Echo_Mode()) == IDLE);
-//
-//  while((response = Connect_Wifi(ssid, password)) == IDLE);
-//
-//  while((response = mqtt_connect_broker("192.168.137.1", "1883", "Topuz")) == IDLE);
-//
-//  char payload[100];
-//  uint32_t lastTick=0;
-//  uint32_t local_time = 0;
-//  uint32_t hour=0,minute=0,second=0;
-//  while((response = mqtt_subcribe("topuz/sub")) == IDLE);
-//
-//  int result = 0;
-//  MQTT_Publish_Packet received_packet = {0};
-//
-//  while (1)
-//  {
-//
-//	  if(HAL_GetTick() - lastTick >= 1000){
-//		  lastTick = HAL_GetTick();
-//		  local_time++;
-//		  hour = local_time/3600;
-//		  minute = local_time/60;
-//		  second = local_time%60;
-//		  sprintf(payload,"Local time:%.2d:%.2d:%.2d",hour,minute,second);
-//		  while((response = mqtt_publish_message("topuz/test", payload)) == IDLE);
-//
-//	  }
-//
-//	  result = mqtt_read_message(&received_packet, "topuz/sub");
-//	  if(result>0)
-//	  {
-//		  if(strcmp(received_packet.message,"LED_TOGGLE") == 0){
-//			  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-//			  while((response = mqtt_disconnect_broker()) == IDLE );
-//		  }
-//
-//		  mqtt_clear_buffer();
-//	  }
-//
-////	  HAL_Delay(500);
-//
+
+  while (1)
+  {
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-//  }
+
   /* USER CODE END 3 */
+  }
 }
 
 /**

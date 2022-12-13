@@ -14,6 +14,10 @@
 #include "timers.h"
 #include "queue.h"
 
+#include "hydroponic_io.h"
+#include "mqtt.h"
+#include "string.h"
+
 
 #define UART_DEBUG					//  Change this line to comment if you do not want to print debug messages.
 
@@ -38,7 +42,7 @@
 #define MQTT_SUBSCRIBE_TOPIC		"topuz/sub"
 
 #define APP_TIMER_PERIOD			1000UL		// 1 second
-#define PUBLISH_PERIOD				50UL
+#define PUBLISH_PERIOD				10UL		// second
 
 typedef enum{
 	shut_down = 0,
@@ -71,5 +75,9 @@ void command_process_task(void *argument);
 void timer_callback(TimerHandle_t xTimer);
 
 void command_handler(commands cmd);
+
+int mqtt_read_command(MQTT_Publish_Packet *packet, const char **topic_array);
+
+void subscribe_topics(const char **topics);
 
 #endif /* APP_H_ */
