@@ -166,7 +166,7 @@ TEST(MqttTestGroup, MqttConnectBrokerTest)
 
 	const char esp_response[4][50] = {
 			AT_RESPONSE_OK,
-			AT_RESPONSE_OK,
+			AT_RESPONSE_CONNECT,
 			AT_RESPONSE_GREATER_THAN,
 			AT_RESPONSE_SEND_OK
 	};
@@ -219,7 +219,7 @@ TEST(MqttTestGroup, MqttPingRequestTest)
 	// pingreq packet size is two bytes [ 0xC0, 0x00]
 	uint8_t pingReqPacket[2] = {0xC0, 0x00};
 	// pingresp packet size is two bytes [ 0xC1, 0x00]
-	uint8_t pingRespPacket[2] = {0xC1, 0x00};
+	uint8_t pingRespPacket[2] = {0xD0, 0x00};
 
 	char *response_buffer[2] =
 	{

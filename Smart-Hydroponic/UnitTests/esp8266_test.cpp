@@ -274,7 +274,7 @@ TEST(EspDriver_Test_Group, Wait_Response_Timeout_Test)
 
 	while(1)	// wait the message until timeout occurs.
 	{
-		response_state = Wait_Response((char*)"OK", 1000);
+		response_state = Wait_Response((char*)"OK", 2, 1000);
 		if(response_state != IDLE)
 			break;
 
@@ -293,7 +293,7 @@ TEST(EspDriver_Test_Group, Wait_Response_Test)
 
 	while(1)
 	{
-		response_state = Wait_Response((char*)"OK",1000);
+		response_state = Wait_Response((char*)"OK", 2, 1000);
 		if(response_state != IDLE)
 			break;
 		for(int i=0;i<(int)strlen(response);i++)
@@ -508,7 +508,7 @@ TEST(EspDriver_Test_Group, Connect_TCP_Test)
 	char response_arr[2][50] =
 	{
 		AT_RESPONSE_OK,
-		AT_RESPONSE_OK
+		AT_RESPONSE_CONNECT
 	};
 
 	char *fake_command_buffer[2] =

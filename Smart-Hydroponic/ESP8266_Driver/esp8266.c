@@ -558,7 +558,7 @@ Status Is_Wifi_Connected(void){
 		ringBuffer_flush(rx_buffer);
 		return STATUS_ERROR;
 	}
-	else if(ringBuffer_lookFor(rx_buffer, (uint8_t*)"+CWJAP:") && ringBuffer_lookFor(rx_buffer, (uint8_t*)AT_RESPONSE_OK)){
+	else if(ringBuffer_lookFor(rx_buffer, (uint8_t*)"+CWJAP:") || ringBuffer_lookFor(rx_buffer, (uint8_t*)AT_RESPONSE_OK)){
 		is_first_call = 0;
 		ringBuffer_flush(rx_buffer);
 		return STATUS_OK;
