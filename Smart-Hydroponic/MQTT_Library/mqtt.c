@@ -54,6 +54,25 @@ int32_t mqtt_encode_packet(uint8_t *buffer, void *packet, mqtt_packet_types pack
 			buffer[index++] = connectPacket->ClientID[i];
 		}
 
+#ifdef	USE_MQTT_AUTHENTICATION
+		uint16_t user_name_length = strlen(connectPacket->UserName);
+		buffer[index++] = user_name_length >> 8;
+		buffer[index++] = user_name_length & 0xFF;
+		for(uint16_t i=0; i<user_name_length; i++){
+			if(i == MAX_LENGTH_OF_USERNAME)
+				return -1;
+			buffer[index++] = connectPacket->UserName[i];
+		}
+
+		uint16_t password_length = strlen(connectPacket->Password);
+		buffer[index++] = password_length >> 8;
+		buffer[index++] = password_length & 0xFF;
+		for(uint16_t i=0; i<password_length; i++){
+			if(i == MAX_LENGTH_OF_PASSWORD)
+				return -1;
+			buffer[index++] = connectPacket->Password[i];
+		}
+#endif
 		return index;
 
 	}
@@ -114,7 +133,7 @@ int32_t mqtt_encode_packet(uint8_t *buffer, void *packet, mqtt_packet_types pack
 	return -1;
 }
 
-Status mqtt_connect_broker(const char* ip,const char* port, const char* clientID){
+Status mqtt_connect_broker(const char* ip,const char* port){
 
 	static int isFirstCall = 0;
 	static uint8_t packetBuffer[100] = {0};
@@ -123,18 +142,26 @@ Status mqtt_connect_broker(const char* ip,const char* port, const char* clientID
 
 	if(!isFirstCall){
 		MQTT_Connect_Packet packet = {0};
-		uint16_t lengthOfClientID = strlen(clientID);
-		uint8_t remainLength = lengthOfClientID + 12;
+		uint16_t lengthOfClientID = strlen(MQTT_CLIENT_ID);
+		uint8_t remainLength = 0;
 
+#ifdef	USE_MQTT_AUTHENTICATION
+		remainLength = lengthOfClientID + 12 + 4 + strlen(MQTT_USERNAME) + strlen(MQTT_PASSWORD);
+		packet.Flag = 0xC2;
+		strcpy(packet.UserName,MQTT_USERNAME);
+		strcpy(packet.Password,MQTT_PASSWORD);
+#else
+		remainLength = lengthOfClientID + 12;
+		packet.Flag = 0x02;
+#endif
 		packet.ConnectByte = 0x10;
 		packet.RemainLength = remainLength;
 		packet.ProtocolNameLength = 0x0004;
 		strcpy(packet.ProtocolName,"MQTT");
 		packet.Level = 0x04;
-		packet.Flag = 0x02;
 		packet.KeepAlive = MQTT_KEEP_ALIVE;
 		packet.ClientIDLength = lengthOfClientID;
-		strcpy(packet.ClientID,clientID);
+		strcpy(packet.ClientID,MQTT_CLIENT_ID);
 
 		numberOfBytes = mqtt_encode_packet(packetBuffer, &packet, CONNECT_PACKET);
 

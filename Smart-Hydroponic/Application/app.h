@@ -38,8 +38,6 @@
 #define	WIFI_PASSWORD				"tmhm4545."
 #define MQTT_BROKER_IP				"192.168.137.1"
 #define MQTT_BROKER_PORT			"1883"
-#define MQTT_CLIENT_ID				"Topuz"
-#define MQTT_SUBSCRIBE_TOPIC		"topuz/sub"
 
 #define APP_TIMER_PERIOD			1000UL		// 1 second
 #define PUBLISH_PERIOD				10UL		// second

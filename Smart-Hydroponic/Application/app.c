@@ -164,7 +164,7 @@ void broker_connect_task(void *argument){
 
 		while(1){
 
-			while((response = mqtt_connect_broker(MQTT_BROKER_IP, MQTT_BROKER_PORT, MQTT_CLIENT_ID)) == IDLE);
+			while((response = mqtt_connect_broker(MQTT_BROKER_IP, MQTT_BROKER_PORT)) == IDLE);
 
 			if(response != STATUS_OK)
 				debug_printf("Error: Not connected to broker.\n");

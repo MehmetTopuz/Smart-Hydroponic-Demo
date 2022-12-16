@@ -27,9 +27,22 @@ extern "C"
 #define MQTT_PUBLISH_HEADER				(uint8_t)0x30
 #define MQTT_DISCONNECT_HEADER			(uint8_t)0xE0
 
-#define MAX_LENGTH_OF_CLIENT_ID 		50
-#define MAX_LENGTH_OF_TOPIC_NAME 		50
-#define MAX_LENGTH_OF_TOPIC_MESSAGE 	100
+#define USE_MQTT_AUTHENTICATION
+
+#ifdef	USE_MQTT_AUTHENTICATION
+
+#define MQTT_USERNAME					"mehmettopuz"
+#define MQTT_PASSWORD					"12345"
+
+#endif
+
+#define MQTT_CLIENT_ID					"Smart-Hydroponic"
+
+#define MAX_LENGTH_OF_CLIENT_ID 		50U
+#define MAX_LENGTH_OF_TOPIC_NAME 		50U
+#define MAX_LENGTH_OF_TOPIC_MESSAGE 	100U
+#define MAX_LENGTH_OF_USERNAME			20U
+#define MAX_LENGTH_OF_PASSWORD			20U
 
 typedef enum {
 	CONNECT_PACKET = 0,
@@ -49,6 +62,8 @@ typedef struct{
 	uint16_t KeepAlive;				// By Default 60.
 	uint16_t ClientIDLength;			// This one will be user defined. Client ID Length.
 	char ClientID[MAX_LENGTH_OF_CLIENT_ID];					// Client ID. User Defined.
+	char UserName[MAX_LENGTH_OF_USERNAME];
+	char Password[MAX_LENGTH_OF_PASSWORD];
 }MQTT_Connect_Packet;
 
 
@@ -73,7 +88,7 @@ uint32_t mqtt_init(size_t rx_buffer_size);
 
 int32_t mqtt_encode_packet(uint8_t *buffer, void *packet, mqtt_packet_types packetType );
 
-Status mqtt_connect_broker(const char* ip,const char* port, const char* clientID);
+Status mqtt_connect_broker(const char* ip,const char* port);
 
 Status mqtt_disconnect_broker(void);
 

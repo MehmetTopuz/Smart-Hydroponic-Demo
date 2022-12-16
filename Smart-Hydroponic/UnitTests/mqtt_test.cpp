@@ -162,7 +162,6 @@ TEST(MqttTestGroup, MqttConnectBrokerTest)
 {
 	const char ip[] = "broker.mqttdashboard.com";
 	const char port[] = "1883";
-	const char clientID[] = "Topuz";
 
 	const char esp_response[4][50] = {
 			AT_RESPONSE_OK,
@@ -174,7 +173,7 @@ TEST(MqttTestGroup, MqttConnectBrokerTest)
 	const char esp_commands[3][60] = {
 			AT_CIPMUX_SINGLE,
 			"AT+CIPSTART=\"TCP\",\"broker.mqttdashboard.com\",1883\r\n",
-			"AT+CIPSEND=19\r\n" // 19 represents the number of bytes to be sent.
+			"AT+CIPSEND=30\r\n" // 30 represents the number of bytes to be sent.
 	};
 
 	for(int i=0;i<3;i++)
@@ -182,9 +181,9 @@ TEST(MqttTestGroup, MqttConnectBrokerTest)
 		mock().expectOneCall("UART_Transmit_Fake").withParameter("data", (uint8_t*)esp_commands[i], strlen(esp_commands[i])).withIntParameter("size", strlen(esp_commands[i]));
 	}
 	// mocking connect packet
-	uint8_t data_buffer[] = {0x10,0x11,0x00,0x04,'M','Q','T','T',0x04,0x02,0x00,0x3C,0x00,0x05,'T','o','p','u','z'};
+	uint8_t data_buffer[] = {0x10,0x1C,0x00,0x04,'M','Q','T','T',0x04,0x02,0x00,0x3C,0x00,0x10,'S','m','a','r','t','-','H','y','d','r','o','p','o','n','i','c'};
 
-	mock().expectOneCall("UART_Transmit_Fake").withParameter("data",(uint8_t*)data_buffer,19).withIntParameter("size", 19);
+	mock().expectOneCall("UART_Transmit_Fake").withParameter("data",(uint8_t*)data_buffer,30).withIntParameter("size", 30);
 
 
 	Status status;
@@ -192,7 +191,7 @@ TEST(MqttTestGroup, MqttConnectBrokerTest)
 	while(1)
 	{
 
-		status = mqtt_connect_broker(ip, port, clientID);
+		status = mqtt_connect_broker(ip, port);
 
 		if(status != IDLE)
 		{
