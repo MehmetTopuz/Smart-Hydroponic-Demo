@@ -14,6 +14,12 @@ static TimerHandle_t soft_timer;
 
 static QueueHandle_t command_queue;
 
+static temp_t temparature_t;
+
+static ph_t pH_t;
+
+static uint8_t humidity, tank_level, conductivity;
+
 static const char *topic_list[50] = {
 		"hydroponic/lights",
 		"hydroponic/pump",
@@ -240,7 +246,7 @@ void publisher_task(void *argument){
 			/*
 			 * TODO: Add a mutex here for UART.
 			 */
-			response = mqtt_publish_message("hydroponic/test", payload);
+			response = mqtt_publish_message("hydroponic/heartbeat", payload);
 
 			if(response == IDLE){		// If the library is awaiting an answer from the ESP, execute the following task.
 				taskYIELD();
@@ -428,4 +434,33 @@ commands_t string_to_cmd(MQTT_Publish_Packet *packet){
 	}
 
 	return idle;
+}
+
+int encode_heart_beat_packet(uint8_t *buffer){
+
+	memset(buffer, 0, SIZE_OF_HEART_BEAT_PACKET);
+	int index = 0;
+
+	uint8_t status_byte = 0;
+	/*
+	 * TODO: fill status bits.
+	 */
+	buffer[index++] = status_byte;
+	/* append temperature to buffer using union.*/
+	buffer[index++] = temparature_t.temp_b[0];
+	buffer[index++] = temparature_t.temp_b[1];
+	buffer[index++] = temparature_t.temp_b[2];
+	buffer[index++] = temparature_t.temp_b[3];
+
+	buffer[index++] = humidity;
+	buffer[index++] = tank_level;
+	buffer[index++] = conductivity;
+
+	/* append ph to buffer.*/
+	buffer[index++] = pH_t.ph_b[0];
+	buffer[index++] = pH_t.ph_b[1];
+	buffer[index++] = pH_t.ph_b[2];
+	buffer[index++] = pH_t.ph_b[3];
+
+	return index;
 }

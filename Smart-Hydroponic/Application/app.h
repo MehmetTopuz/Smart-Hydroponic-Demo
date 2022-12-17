@@ -42,6 +42,8 @@
 #define APP_TIMER_PERIOD			1000UL		// 1 second
 #define PUBLISH_PERIOD				10UL		// second
 
+#define SIZE_OF_HEART_BEAT_PACKET	11
+
 typedef enum{
 	shut_down = 0,
 	pump_motor_on,
@@ -58,6 +60,19 @@ typedef enum{
 	alarm_off,
 	idle
 }commands_t;
+
+
+typedef union{
+	uint8_t temp_b[4];
+	float temp_f;
+}temp_t;
+
+
+typedef union{
+	uint8_t ph_b[4];
+	float ph_f;
+}ph_t;
+
 
 int app_init(void);
 
@@ -80,5 +95,7 @@ int mqtt_read_command(MQTT_Publish_Packet *packet, const char **topic_array);
 void subscribe_topics(const char **topics);
 
 commands_t string_to_cmd(MQTT_Publish_Packet *packet);
+
+int encode_heart_beat_packet(uint8_t *buffer);
 
 #endif /* APP_H_ */
