@@ -27,6 +27,7 @@ static const char *topic_list[50] = {
 		"hydroponic/air_conditioner",
 		"hydroponic/dosing_pump",
 		"hydroponic/alarm",
+//		"hydroponic/heartbeat",
 		NULL};
 
 static const char *command_list[50] = {
@@ -223,30 +224,27 @@ void publisher_task(void *argument){
 	 */
 	xSemaphoreTake(broker_connected_sem, portMAX_DELAY);
 
-	char payload[100] = "test message";
-	int number_of_tries = 0;
+	uint8_t heart_beat_packet[SIZE_OF_HEART_BEAT_PACKET] = {0};
+	int number_of_tries = 0, payload_length = 0;
 
 	for(;;){
 
 		xSemaphoreTake(publisher_task_sem, portMAX_DELAY);
-//		vTaskDelay(pdMS_TO_TICKS(1000));
-		/*
-		 * TODO: Get all the variables that will be published.
-		 */
-
-
-		/*
-		 * TODO: Create encode_publish function.
-		 */
-
 
 		/* Publish heart-beat message*/
+		humidity = 30;
+		temparature_t.temp_f = 25.4;
+		pH_t.ph_f = 6.6;
+		tank_level = 80;
+		conductivity = 20;
+
+		payload_length = encode_heart_beat_packet(heart_beat_packet);
 		Status response = IDLE;
 		while(1){
 			/*
 			 * TODO: Add a mutex here for UART.
 			 */
-			response = mqtt_publish_message("hydroponic/heartbeat", payload);
+			response = mqtt_publish_message("hydroponic/heartbeat", heart_beat_packet, payload_length);
 
 			if(response == IDLE){		// If the library is awaiting an answer from the ESP, execute the following task.
 				taskYIELD();
@@ -260,7 +258,7 @@ void publisher_task(void *argument){
 				number_of_tries++;
 			}
 			else if(response == STATUS_OK){
-				debug_printf("Publish is successful.\n \"%s\"->%d bytes sent.\n",payload, strlen(payload));
+				debug_printf("Publish is successful.%d bytes sent.\n",payload_length);
 				number_of_tries = 0;
 				break;
 			}
@@ -300,7 +298,7 @@ void listener_task(void *argument){
 			cmd = string_to_cmd(&received_packet);
 			xQueueSendToBack(command_queue, &cmd,0);
 			HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-			memset(received_packet.message, 0, sizeof(received_packet.message));
+			memset(received_packet.payload, 0, sizeof(received_packet.payload));
 			mqtt_clear_buffer();
 
 		}
@@ -427,7 +425,7 @@ commands_t string_to_cmd(MQTT_Publish_Packet *packet){
 	int idx = 0;
 
 	while(command_list[idx]){
-		if(strcmp(packet->message, command_list[idx]) == 0)
+		if(strcmp((char*)packet->payload, command_list[idx]) == 0)
 			return (commands_t)idx;
 		else
 			idx++;

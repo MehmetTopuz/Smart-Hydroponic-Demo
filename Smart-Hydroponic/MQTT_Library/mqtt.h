@@ -27,7 +27,7 @@ extern "C"
 #define MQTT_PUBLISH_HEADER				(uint8_t)0x30
 #define MQTT_DISCONNECT_HEADER			(uint8_t)0xE0
 
-#define USE_MQTT_AUTHENTICATION
+//#define USE_MQTT_AUTHENTICATION
 
 #ifdef	USE_MQTT_AUTHENTICATION
 
@@ -81,7 +81,8 @@ typedef struct{
 	uint8_t remainLength;
 	uint16_t topicLength;
 	char topic[MAX_LENGTH_OF_TOPIC_NAME];
-	char message[MAX_LENGTH_OF_TOPIC_MESSAGE];
+	uint8_t payload[MAX_LENGTH_OF_TOPIC_MESSAGE];
+	size_t sizeOfPayload;
 }MQTT_Publish_Packet;
 
 uint32_t mqtt_init(size_t rx_buffer_size);
@@ -94,7 +95,7 @@ Status mqtt_disconnect_broker(void);
 
 Status mqtt_ping_request(void);
 
-Status mqtt_publish_message(const char* topic, const char* payload);
+Status mqtt_publish_message(const char* topic, const uint8_t* payload, size_t size);
 
 Status mqtt_subcribe(const char* topic);
 

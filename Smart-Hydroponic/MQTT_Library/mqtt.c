@@ -120,12 +120,12 @@ int32_t mqtt_encode_packet(uint8_t *buffer, void *packet, mqtt_packet_types pack
 
 			buffer[index++] = publishPacket->topic[i];
 		}
-		for(uint16_t i=0; i< strlen(publishPacket->message);i++)
+		for(uint16_t i=0; i< publishPacket->sizeOfPayload ;i++)
 		{
 			if(i == MAX_LENGTH_OF_TOPIC_MESSAGE)
 				return -1;
 
-			buffer[index++] = publishPacket->message[i];
+			buffer[index++] = publishPacket->payload[i];
 		}
 		return index;
 	}
@@ -238,7 +238,7 @@ Status mqtt_ping_request(void){
 	return response;
 }
 
-Status mqtt_publish_message(const char* topic, const char* payload){
+Status mqtt_publish_message(const char* topic, const uint8_t* payload, size_t size){
 
 	static int isFirstCall = 0;
 	static uint8_t packetBuffer[100] = {0};
@@ -248,15 +248,16 @@ Status mqtt_publish_message(const char* topic, const char* payload){
 	if(!isFirstCall){
 		MQTT_Publish_Packet packet = {0};
 		uint16_t topicLength = strlen(topic);
-		uint16_t messageLength = strlen(payload);
-		uint8_t remainLength = topicLength + messageLength + 2;	// 2 represents topic length bytes.
+		uint8_t remainLength = topicLength + size + 2;	// 2 represents topic length bytes.
 
 
 		packet.publishPacketByte = MQTT_PUBLISH_HEADER;	// Qos, DUP flag and Retain bytes are equal to zero.
 		packet.remainLength = remainLength;
 		strcpy(packet.topic,topic);
 		packet.topicLength = topicLength;
-		strcpy(packet.message,payload);
+		packet.sizeOfPayload = size;
+		for(int i=0; i<size; i++)
+			packet.payload[i] = payload[i];
 
 		numberOfBytes = mqtt_encode_packet(packetBuffer, &packet, PUBLISH_PACKET);
 
@@ -358,12 +359,12 @@ int32_t mqtt_read_message(MQTT_Publish_Packet *packet, const char *topic){
 	packet->topicLength = (mqtt_rx_buffer->buffer[position-2] << 8) + packet->topicLength;
 	packet->remainLength = mqtt_rx_buffer->buffer[position-3];
 	packet->publishPacketByte = mqtt_rx_buffer->buffer[position-4];
-	memcpy(packet->message,&mqtt_rx_buffer->buffer[position+topic_length],packet->remainLength - packet->topicLength - 2);
+	memcpy(packet->payload,&mqtt_rx_buffer->buffer[position+topic_length],packet->remainLength - packet->topicLength - 2);
 //	packet->message[packet->remainLength - packet->topicLength - 1] = '\0';
 	memcpy(packet->topic,&mqtt_rx_buffer->buffer[position],topic_length);
 	ringBuffer_flush(mqtt_rx_buffer);
 	// return message size
-	return strlen(packet->message);
+	return strlen((char*)packet->payload);
 }
 
 void mqtt_clear_buffer(void){

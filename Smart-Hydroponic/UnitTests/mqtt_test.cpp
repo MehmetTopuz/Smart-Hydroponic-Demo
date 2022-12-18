@@ -134,7 +134,9 @@ TEST(MqttTestGroup, PublishPacketTest)
 	publishPacket.remainLength = remainLength;
 	publishPacket.topicLength = topicLength;
 	strcpy(publishPacket.topic,topicName);
-	strcpy(publishPacket.message,message);
+	publishPacket.sizeOfPayload = strlen(message);
+	for(int i=0; i<publishPacket.sizeOfPayload; i++)
+		publishPacket.payload[i] = (uint8_t)message[i];
 
 	int32_t numberOfBytes = mqtt_encode_packet(outputBuffer, &publishPacket, PUBLISH_PACKET);
 
@@ -284,7 +286,7 @@ TEST(MqttTestGroup, MqttPublishTest)
 	Status response = IDLE;
 
 	while(1){
-		response = mqtt_publish_message(topic, payload);
+		response = mqtt_publish_message(topic, (uint8_t*)payload, strlen(payload));
 
 		if(response != IDLE)
 		{
@@ -368,7 +370,10 @@ TEST(MqttTestGroup, MqttReadMessageTest)
 {
 	// create fake publish message for subscribtion
 	MQTT_Publish_Packet pub_packet = {0};
-	strcpy(pub_packet.message,"MOTOR_ON");
+	char message[] = "MOTOR_ON";
+	pub_packet.sizeOfPayload = strlen(message);
+	for(int i=0; i<pub_packet.sizeOfPayload; i++)
+		pub_packet.payload[i] = (uint8_t)message[i];
 	pub_packet.publishPacketByte = MQTT_PUBLISH_HEADER;
 	strcpy(pub_packet.topic,"garden/hydroponic");
 	pub_packet.topicLength = strlen("garden/hydroponic");
@@ -388,7 +393,7 @@ TEST(MqttTestGroup, MqttReadMessageTest)
 	result = mqtt_read_message(&received_packet, "garden/hydroponic");
 	// check the properties of received message
 	LONGS_EQUAL(strlen("MOTOR_ON"),result);
-	STRCMP_EQUAL(pub_packet.message,received_packet.message);
+	STRCMP_EQUAL((char*)pub_packet.payload,(char*)received_packet.payload);
 	STRCMP_EQUAL(pub_packet.topic,received_packet.topic);
 	LONGS_EQUAL(pub_packet.remainLength,received_packet.remainLength);
 	LONGS_EQUAL(pub_packet.publishPacketByte,received_packet.publishPacketByte);
