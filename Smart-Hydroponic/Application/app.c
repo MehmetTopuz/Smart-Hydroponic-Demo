@@ -14,11 +14,11 @@ static TimerHandle_t soft_timer;
 
 static QueueHandle_t command_queue;
 
-static temp_t temparature_t;
+temp_t temparature_t;
 
-static ph_t pH_t;
+ph_t pH_t;
 
-static uint8_t humidity, tank_level, conductivity;
+uint8_t humidity, tank_level, conductivity;
 
 static const char *topic_list[50] = {
 		"hydroponic/lights",

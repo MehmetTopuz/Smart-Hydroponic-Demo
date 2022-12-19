@@ -8,6 +8,12 @@
 #ifndef APP_H_
 #define APP_H_
 
+/* C++ Detection Block ------------------------------------------------------------------*/
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
@@ -97,5 +103,9 @@ void subscribe_topics(const char **topics);
 commands_t string_to_cmd(MQTT_Publish_Packet *packet);
 
 int encode_heart_beat_packet(uint8_t *buffer);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* APP_H_ */
