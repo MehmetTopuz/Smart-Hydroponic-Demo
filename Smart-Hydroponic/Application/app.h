@@ -29,26 +29,29 @@ extern "C"
 
 #ifdef	UART_DEBUG
 
-#define debug_printf				printf
+#define debug_printf						printf
 
 #else
 
-#define debug_printf(...)			(void)0
+#define debug_printf(...)					(void)0
 #endif
 
-#define ESP_IO_GetTick				HAL_GetTick
-#define ESP_UART_RING_BUFFER_SIZE	1024UL
-#define MQTT_RING_BUFFER_SIZE		1024UL
+#define ESP_IO_GetTick						HAL_GetTick
+#define ESP_UART_RING_BUFFER_SIZE			1024UL
+#define MQTT_RING_BUFFER_SIZE				1024UL
 
-#define WIFI_SSID					"Topuz"
-#define	WIFI_PASSWORD				"tmhm4545."
-#define MQTT_BROKER_IP				"192.168.137.1"
-#define MQTT_BROKER_PORT			"1883"
+#define WIFI_SSID							"Topuz"
+#define	WIFI_PASSWORD						"tmhm4545."
+#define MQTT_BROKER_IP						"192.168.137.1"
+#define MQTT_BROKER_PORT					"1883"
 
-#define APP_TIMER_PERIOD			1000UL		// 1 second
-#define PUBLISH_PERIOD				10UL		// second
+#define APP_TIMER_PERIOD					1000U		// 1 second
+#define PUBLISH_PERIOD						10U			// second
 
-#define SIZE_OF_HEART_BEAT_PACKET	11
+#define SIZE_OF_HEART_BEAT_PACKET			11U
+#define MESSAGE_SIZE_OF_PUBLISH_QUEUE		30U
+
+
 
 typedef enum{
 	shut_down = 0,
@@ -79,6 +82,9 @@ typedef union{
 	float ph_f;
 }ph_t;
 
+typedef struct{
+	char message[MESSAGE_SIZE_OF_PUBLISH_QUEUE];
+}message_t;
 
 int app_init(void);
 
@@ -104,6 +110,7 @@ commands_t string_to_cmd(MQTT_Publish_Packet *packet);
 
 int encode_heart_beat_packet(uint8_t *buffer);
 
+int message_to_index(message_t *message);
 #ifdef __cplusplus
 }
 #endif

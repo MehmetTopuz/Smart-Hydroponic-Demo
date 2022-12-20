@@ -8,11 +8,11 @@
 #include "app.h"
 
 
-static SemaphoreHandle_t publisher_task_sem, broker_connection_sem, listener_task_sem, broker_connected_sem;
+static SemaphoreHandle_t broker_connection_sem, listener_task_sem, broker_connected_sem;
 
 static TimerHandle_t soft_timer;
 
-static QueueHandle_t command_queue;
+static QueueHandle_t command_queue, publish_queue;
 
 temp_t temparature_t;
 
@@ -27,6 +27,7 @@ static const char *topic_list[50] = {
 		"hydroponic/air_conditioner",
 		"hydroponic/dosing_pump",
 		"hydroponic/alarm",
+		"hydroponic/system",
 //		"hydroponic/heartbeat",
 		NULL};
 
@@ -45,6 +46,23 @@ static const char *command_list[50] = {
 		"ALARM_ON",
 		"ALARM_OFF",
 		NULL
+};
+
+static const char *message_list[20] = {
+		"Shutting down.",
+		"Pump motor is running.",
+		"Pump motor is stopped.",
+		"The lights are on.",
+		"The lights are off.",
+		"Solenoid valve is on.",
+		"Solenoid valve is off.",
+		"Air conditioner is on.",
+		"Air conditioner is off.",
+		"Dosing pump is running.",
+		"Dosing pump is stopped.",
+		"Alarm has been activated.",
+		"Alarm has been deactivated."
+
 };
 
 int app_init(void){
@@ -79,17 +97,17 @@ int app_init(void){
 	broker_connection_sem = xSemaphoreCreateBinary();
 	broker_connected_sem = xSemaphoreCreateBinary();
 
-	/* create semaphore for broker connect task*/
-
-	publisher_task_sem = xSemaphoreCreateBinary();
-
-	/* create semaphore for broker connect task*/
+	/* create semaphore for listener task*/
 
 	listener_task_sem = xSemaphoreCreateBinary();
 
 	/* create a queue for command process.*/
 
 	command_queue = xQueueCreate(10, sizeof(commands_t));
+
+	/* create a queue for publish task.*/
+
+	publish_queue = xQueueCreate(5, sizeof(message_t));
 
 	/* Create Tasks */
 
@@ -227,26 +245,36 @@ void publisher_task(void *argument){
 	uint8_t heart_beat_packet[SIZE_OF_HEART_BEAT_PACKET] = {0};
 	int number_of_tries = 0, payload_length = 0;
 
+	message_t publish_message = {0};
+
+	int index = 0;
+
 	for(;;){
 
-		xSemaphoreTake(publisher_task_sem, portMAX_DELAY);
+		if(xQueueReceive(publish_queue, &publish_message, portMAX_DELAY) == errQUEUE_EMPTY)
+			continue;
 
-		/* Publish heart-beat message*/
-		humidity = 30;
-		temparature_t.temp_f = 25.4;
-		pH_t.ph_f = 6.6;
-		tank_level = 80;
-		conductivity = 20;
-
-		payload_length = encode_heart_beat_packet(heart_beat_packet);
 		Status response = IDLE;
 		while(1){
 			/*
 			 * TODO: Add a mutex here for UART.
 			 */
-			response = mqtt_publish_message("hydroponic/heartbeat", heart_beat_packet, payload_length);
+			/* Publish heart-beat message*/
+			if(strcmp(publish_message.message, "HEART_BEAT") == 0){
+				humidity = 30;
+				temparature_t.temp_f = 25.4;
+				pH_t.ph_f = 6.6;
+				tank_level = 80;
+				conductivity = 20;
 
-			if(response == IDLE){		// If the library is awaiting an answer from the ESP, execute the following task.
+				payload_length = encode_heart_beat_packet(heart_beat_packet);
+
+				response = mqtt_publish_message("hydroponic/heartbeat", heart_beat_packet, payload_length);
+			}
+			else if((index = message_to_index(&publish_message)) != -1)
+				response = mqtt_publish_message("hydroponic/messages", (uint8_t*)message_list[index], payload_length = strlen(message_list[index]));
+
+			if(response == IDLE){		// If the library is awaiting an answer from the ESP, execute the waiting task.
 				taskYIELD();
 			}
 			else if(response == STATUS_ERROR){
@@ -327,12 +355,13 @@ void command_process_task(void *argument){
 void timer_callback(TimerHandle_t xTimer){
 
 	static uint32_t count_for_publish = 0;
-
+	message_t heart_beat = {0};
+	strcpy(heart_beat.message, "HEART_BEAT");
 	count_for_publish++;
 
 	if(count_for_publish >= PUBLISH_PERIOD){
 		count_for_publish = 0;
-		xSemaphoreGive(publisher_task_sem);
+		xQueueSendToBack(publish_queue, &heart_beat, 0);
 	}
 }
 /* configCHECK_FOR_STACK_OVERFLOW must be set to 1 in order to use the vApplicationStackOverflowHook function. */
@@ -351,42 +380,74 @@ void vApplicationMallocFailedHook( void ){
 
 void command_handler(commands_t cmd){
 
+	message_t publish_message = {0};
 	switch (cmd) {
+		case shut_down:
+			debug_printf("Command captured: shut_down\n");
+			strcpy(publish_message.message, command_list[0]);
+			xQueueSendToBack(publish_queue, &publish_message, 0);
+			vTaskDelay(pdMS_TO_TICKS(1000));
+			HAL_NVIC_SystemReset();
+			break;
 		case pump_motor_on:
 			debug_printf("Command captured: pump_motor_on\n");
+			strcpy(publish_message.message, command_list[1]);
+			xQueueSendToBack(publish_queue, &publish_message, 0);
 			break;
 		case pump_motor_off:
 			debug_printf("Command captured: pump_motor_off\n");
+			strcpy(publish_message.message, command_list[2]);
+			xQueueSendToBack(publish_queue, &publish_message, 0);
 			break;
 		case lights_on:
 			debug_printf("Command captured: lights_on\n");
+			strcpy(publish_message.message, command_list[3]);
+			xQueueSendToBack(publish_queue, &publish_message, 0);
 			break;
 		case lights_off:
 			debug_printf("Command captured: lights_off\n");
+			strcpy(publish_message.message, command_list[4]);
+			xQueueSendToBack(publish_queue, &publish_message, 0);
 			break;
 		case valve_on:
 			debug_printf("Command captured: valve_on\n");
+			strcpy(publish_message.message, command_list[5]);
+			xQueueSendToBack(publish_queue, &publish_message, 0);
 			break;
 		case valve_off:
 			debug_printf("Command captured: valve_off\n");
+			strcpy(publish_message.message, command_list[6]);
+			xQueueSendToBack(publish_queue, &publish_message, 0);
 			break;
 		case air_conditioner_on:
 			debug_printf("Command captured: air_conditioner_on\n");
+			strcpy(publish_message.message, command_list[7]);
+			xQueueSendToBack(publish_queue, &publish_message, 0);
 			break;
 		case air_conditioner_off:
 			debug_printf("Command captured: air_conditioner_off\n");
+			strcpy(publish_message.message, command_list[8]);
+			xQueueSendToBack(publish_queue, &publish_message, 0);
 			break;
 		case dosing_pump_on:
 			debug_printf("Command captured: dosing_pump_on\n");
+			strcpy(publish_message.message, command_list[9]);
+			xQueueSendToBack(publish_queue, &publish_message, 0);
 			break;
 		case dosing_pump_off:
 			debug_printf("Command captured: dosing_pump_off\n");
+			strcpy(publish_message.message, command_list[10]);
+			xQueueSendToBack(publish_queue, &publish_message, 0);
 			break;
 		case alarm_on:
 			debug_printf("Command captured: alarm_on\n");
+			strcpy(publish_message.message, command_list[11]);
+			xQueueSendToBack(publish_queue, &publish_message, 0);
 			break;
 		case alarm_off:
 			debug_printf("Command captured: alarm_off\n");
+			strcpy(publish_message.message, command_list[12]);
+			xQueueSendToBack(publish_queue, &publish_message, 0);
 			break;
 		default:
 			break;
@@ -461,4 +522,18 @@ int encode_heart_beat_packet(uint8_t *buffer){
 	buffer[index++] = pH_t.ph_b[3];
 
 	return index;
+}
+
+int message_to_index(message_t *message){
+
+	int index = 0;
+
+	while(command_list[index]){
+		if(strcmp(message->message, command_list[index]) == 0){
+			return index;
+		}
+		else
+			index++;
+	}
+	return -1;
 }
