@@ -58,3 +58,21 @@ TEST(AppTestGroup, HeartBeatTest)
 	LONGS_EQUAL(pH_t.ph_b[2], heart_beat_packet[10]);
 	LONGS_EQUAL(pH_t.ph_b[3], heart_beat_packet[11]);
 }
+
+
+TEST(AppTestGroup, StringToCmdTest)
+{
+
+	MQTT_Publish_Packet packet = {0};
+	strcpy((char*)packet.payload,"VALVE_ON");	// put a random command to the packet.
+
+	commands_t command = string_to_cmd(&packet);
+
+	LONGS_EQUAL(valve_on, command);
+
+	strcpy((char*)packet.payload,"NO_COMMAND");	// put a command that is not available in the command_list.
+
+	command = string_to_cmd(&packet);
+
+	LONGS_EQUAL(idle, command);
+}
