@@ -19,10 +19,11 @@ extern "C"
 #include "semphr.h"
 #include "timers.h"
 #include "queue.h"
+#include "string.h"
 
 #include "hydroponic_io.h"
 #include "mqtt.h"
-#include "string.h"
+#include "rc4.h"
 
 
 #define UART_DEBUG					//  Change this line to comment if you do not want to print debug messages.

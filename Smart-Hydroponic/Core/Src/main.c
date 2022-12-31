@@ -25,10 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include "app.h"
-//#include "mqtt.h"
-//#include "string.h"
-//
-//extern RingBuffer *rx_buffer;
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,6 +46,8 @@
 UART_HandleTypeDef hlpuart1;
 UART_HandleTypeDef huart1;
 
+RNG_HandleTypeDef hrng;
+
 osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
 
@@ -59,6 +58,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_LPUART1_UART_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_RNG_Init(void);
 void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
@@ -67,39 +67,7 @@ void StartDefaultTask(void const * argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-//Status response;
-//
-//void UART_SendMessage(uint8_t* messageArray, size_t size)
-//{
-//
-//	for(int i=0;i<size;i++)
-//	{
-//		USART1->TDR = *messageArray++;
-//		while(!(USART1->ISR & (1<<6)));		// wait for transmit register(TC) to set.
-//	}
-///* with HAL drivers-----------------------*/
-////	HAL_UART_Transmit(&huart1, messageArray, strlen((char*)messageArray), HAL_MAX_DELAY);
-//}
-//
-//uint8_t UART_ReceiveByte(void)
-//{
-//
-//	return USART1->RDR;
-///* with HAL drivers-----------------------*/
-////	uint8_t buffer[10];
-////
-////	HAL_UART_Receive(&huart1, &buffer, 1, HAL_MAX_DELAY);
-////
-////	return buffer[0];
-//}
-//void USART1_IRQHandler(void)
-//{
-//	  if(USART1->ISR & (1<<5))			// rx interrupt
-//	  {
-//		 ESP_UART_ReceiveHandler(); 		// ESP receive handler function.
-//		 mqtt_receive_handler();
-//	  }
-//}
+
 /* USER CODE END 0 */
 
 /**
@@ -132,6 +100,7 @@ int main(void)
   MX_GPIO_Init();
   MX_LPUART1_UART_Init();
   MX_USART1_UART_Init();
+  MX_RNG_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -158,7 +127,7 @@ int main(void)
 //  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 //
 //  /* USER CODE BEGIN RTOS_THREADS */
-////  /* add threads, ... */
+//////  /* add threads, ... */
 //  /* USER CODE END RTOS_THREADS */
 //
 //  /* Start scheduler */
@@ -186,7 +155,6 @@ int main(void)
   /* USER CODE END 3 */
   }
 }
-
 /**
   * @brief System Clock Configuration
   * @retval None
@@ -210,7 +178,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV6;
   RCC_OscInitStruct.PLL.PLLN = 85;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV8;
   RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -231,9 +199,11 @@ void SystemClock_Config(void)
   }
   /** Initializes the peripherals clocks
   */
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_LPUART1;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_LPUART1
+                              |RCC_PERIPHCLK_RNG;
   PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
   PeriphClkInit.Lpuart1ClockSelection = RCC_LPUART1CLKSOURCE_PCLK1;
+  PeriphClkInit.RngClockSelection = RCC_RNGCLKSOURCE_PLL;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -332,6 +302,33 @@ static void MX_USART1_UART_Init(void)
   /* USER CODE BEGIN USART1_Init 2 */
 
   /* USER CODE END USART1_Init 2 */
+
+}
+
+/**
+  * @brief RNG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RNG_Init(void)
+{
+
+  /* USER CODE BEGIN RNG_Init 0 */
+
+  /* USER CODE END RNG_Init 0 */
+
+  /* USER CODE BEGIN RNG_Init 1 */
+
+  /* USER CODE END RNG_Init 1 */
+  hrng.Instance = RNG;
+  hrng.Init.ClockErrorDetection = RNG_CED_ENABLE;
+  if (HAL_RNG_Init(&hrng) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN RNG_Init 2 */
+
+  /* USER CODE END RNG_Init 2 */
 
 }
 
