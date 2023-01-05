@@ -57,7 +57,6 @@ void rc4_generate_key_stream(uint8_t *key_stream, size_t length){
 void rc4_encrypt_decrypt(uint8_t *message, uint8_t *out, size_t length){
 
 	/* This function can be used for both encryption and decryption. */
-	memset(out,0,sizeof(out));
 	for(int i=0; i<length; ++i)
 		out[i] = message[i] ^ key_stream[i];
 }

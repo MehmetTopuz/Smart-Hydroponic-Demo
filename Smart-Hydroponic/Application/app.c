@@ -147,6 +147,8 @@ int app_init(void){
 
 	xTimerStart(soft_timer,0);
 
+	rc4_init((uint8_t*)RC4_PUBLIC_KEY, strlen(RC4_PUBLIC_KEY));
+
 	return 1;
 
 }
@@ -243,6 +245,8 @@ void publisher_task(void *argument){
 	xSemaphoreTake(broker_connected_sem, portMAX_DELAY);
 
 	uint8_t heart_beat_packet[SIZE_OF_HEART_BEAT_PACKET] = {0};
+	uint8_t encripted_message[100] = {0};		// TODO: specify the size of this buffer as a macro.
+
 	int number_of_tries = 0, payload_length = 0;
 
 	message_t publish_message = {0};
@@ -268,12 +272,16 @@ void publisher_task(void *argument){
 				conductivity = 20;
 
 				payload_length = encode_heart_beat_packet(heart_beat_packet);
+				// encrypt the heart-beat packet.
+				rc4_encrypt_decrypt(heart_beat_packet, encripted_message, payload_length);
 
-				response = mqtt_publish_message("hydroponic/heartbeat", heart_beat_packet, payload_length);
+				response = mqtt_publish_message("hydroponic/heartbeat", encripted_message, payload_length);
 			}
-			else if((index = message_to_index(&publish_message)) != -1)
-				response = mqtt_publish_message("hydroponic/messages", (uint8_t*)message_list[index], payload_length = strlen(message_list[index]));
-
+			else if((index = message_to_index(&publish_message)) != -1){
+				// encrypt the publish message.
+				rc4_encrypt_decrypt((uint8_t*)message_list[index], encripted_message, payload_length = strlen(message_list[index]));
+				response = mqtt_publish_message("hydroponic/messages", encripted_message, payload_length);
+			}
 			if(response == IDLE){		// If the library is awaiting an answer from the ESP, execute the waiting task.
 				taskYIELD();
 			}
