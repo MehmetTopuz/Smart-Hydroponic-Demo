@@ -41,3 +41,26 @@ void ESP_UART_IRQHandler(void)
 		 mqtt_receive_handler();
 	  }
 }
+
+/*
+ * TODO: Implement these functions when you decide which sensors you will use.
+ */
+float get_pH(void){
+
+	return 0;
+}
+
+float get_conductivity(void){
+
+	return 0;
+}
+
+float get_temperature(void){
+
+	return 0;
+}
+
+int get_humidity(void){
+
+	return 0;
+}

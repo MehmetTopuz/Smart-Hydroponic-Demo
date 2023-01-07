@@ -21,4 +21,13 @@
 void esp_uart_send_bytes(uint8_t* array, size_t size);
 uint8_t esp_uart_receive_byte(void);
 
+/*
+ * TODO: Implement these functions when you decide which sensors you will use.
+ */
+float get_pH(void);
+float get_conductivity(void);
+float get_temperature(void);
+int get_humidity(void);
+
+
 #endif /* HYDROPONIC_IO_H_ */

@@ -47,11 +47,27 @@ extern "C"
 #define MQTT_BROKER_PORT					"1883"
 
 #define APP_TIMER_PERIOD					1000U		// 1 second
-#define PUBLISH_PERIOD						10U			// second
+#define PUBLISH_PERIOD						10U			// 10 second
 
 #define SIZE_OF_HEART_BEAT_PACKET			11U
 #define MESSAGE_SIZE_OF_PUBLISH_QUEUE		30U
 
+#define PUMP_MOTOR_ELAPSED_TIME				1800		// 30 minute
+
+
+/*
+ * TODO: Keep these constants on the flash memory of the device for later.
+ * 		Change them when a command is received.
+ */
+
+#define PH_LOWER_LIMIT			 	6.0F
+#define PH_UPPER_LIMIT				7.0F
+#define EC_LOWER_LIMIT				1.4F
+#define EC_UPPER_LIMIT				1.8F
+#define TEMPERATURE_LOWER_LIMIT		24
+#define TEMPERATURE_UPPER_LIMIT		26
+#define HUMIDITY_LOWER_LIMIT		50		// percent
+#define HUMIDITY_UPPER_LIMIT		60
 
 
 typedef enum{
@@ -99,6 +115,8 @@ void broker_connect_task(void *argument);
 
 void command_process_task(void *argument);
 
+void sensor_task(void *argument);
+
 void timer_callback(TimerHandle_t xTimer);
 
 void command_handler(commands_t cmd);
@@ -112,6 +130,7 @@ commands_t string_to_cmd(MQTT_Publish_Packet *packet);
 int encode_heart_beat_packet(uint8_t *buffer);
 
 int message_to_index(message_t *message);
+
 #ifdef __cplusplus
 }
 #endif

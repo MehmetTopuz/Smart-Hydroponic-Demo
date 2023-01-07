@@ -20,6 +20,8 @@ ph_t pH_t;
 
 uint8_t humidity, tank_level, conductivity;
 
+static uint32_t pump_motor_timer_count;
+
 static const char *topic_list[50] = {
 		"hydroponic/lights",
 		"hydroponic/pump",
@@ -137,6 +139,13 @@ int app_init(void){
 				512,
 				NULL,
 				1,
+				NULL);
+
+	xTaskCreate(sensor_task,
+				"Sensor Task",
+				512,
+				NULL,
+				0,
 				NULL);
 
 	soft_timer = xTimerCreate("Timer",
@@ -360,18 +369,76 @@ void command_process_task(void *argument){
 	}
 }
 
+void sensor_task(void *argument){
+
+	/*
+	 * @brief This task will have sent commands to the command_queue when sensor drivers were implemented.
+	 * 	Therefore, the functions below are representing the sensor driver functions.
+	 */
+
+	for(;;){
+
+		/*
+		 * TODO: Use PID algorithm later in order to control outputs.
+		 */
+		float ph_level = get_pH();
+
+		if(ph_level <= PH_LOWER_LIMIT || ph_level >= PH_UPPER_LIMIT){
+
+			// Do some stuff to maintain pH level of the water.
+
+		}
+
+		float conductivity_of_water = get_conductivity();
+
+		if( conductivity_of_water <= EC_LOWER_LIMIT || conductivity_of_water >= EC_UPPER_LIMIT){
+
+			// Do some stuff to maintain conductivity level of the water.
+		}
+
+		float temperature = get_temperature();
+
+		if( temperature <= TEMPERATURE_LOWER_LIMIT || temperature >= TEMPERATURE_UPPER_LIMIT ){
+
+			// Do some stuff to maintain temperature of the system.
+		}
+
+		int humidity = get_humidity();
+
+		if( humidity <= HUMIDITY_LOWER_LIMIT || humidity >= HUMIDITY_UPPER_LIMIT){
+
+
+		}
+
+
+	}
+}
+
 void timer_callback(TimerHandle_t xTimer){
 
 	static uint32_t count_for_publish = 0;
-	message_t heart_beat = {0};
-	strcpy(heart_beat.message, "HEART_BEAT");
+
 	count_for_publish++;
+	pump_motor_timer_count++;
+
+	if(pump_motor_timer_count >= PUMP_MOTOR_ELAPSED_TIME){
+
+		commands_t cmd = pump_motor_on;
+
+		if(xQueueSendToBack(command_queue, &cmd, 0) == pdPASS)
+			pump_motor_timer_count = 0;
+	}
 
 	if(count_for_publish >= PUBLISH_PERIOD){
-		count_for_publish = 0;
-		xQueueSendToBack(publish_queue, &heart_beat, 0);
+
+		message_t heart_beat = {0};
+		strcpy(heart_beat.message, "HEART_BEAT");
+
+		if(xQueueSendToBack(publish_queue, &heart_beat, 0) == pdPASS)
+			count_for_publish = 0;
 	}
 }
+
 /* configCHECK_FOR_STACK_OVERFLOW must be set to 1 in order to use the vApplicationStackOverflowHook function. */
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask,
@@ -389,75 +456,104 @@ void vApplicationMallocFailedHook( void ){
 void command_handler(commands_t cmd){
 
 	message_t publish_message = {0};
+
 	switch (cmd) {
 		case shut_down:
+
 			debug_printf("Command captured: shut_down\n");
 			strcpy(publish_message.message, command_list[0]);
 			xQueueSendToBack(publish_queue, &publish_message, 0);
 			vTaskDelay(pdMS_TO_TICKS(1000));
 			HAL_NVIC_SystemReset();
+
 			break;
 		case pump_motor_on:
+
 			debug_printf("Command captured: pump_motor_on\n");
 			strcpy(publish_message.message, command_list[1]);
 			xQueueSendToBack(publish_queue, &publish_message, 0);
+			pump_motor_timer_count = 0;
+
 			break;
 		case pump_motor_off:
+
 			debug_printf("Command captured: pump_motor_off\n");
 			strcpy(publish_message.message, command_list[2]);
 			xQueueSendToBack(publish_queue, &publish_message, 0);
+
 			break;
 		case lights_on:
+
 			debug_printf("Command captured: lights_on\n");
 			strcpy(publish_message.message, command_list[3]);
 			xQueueSendToBack(publish_queue, &publish_message, 0);
+
 			break;
 		case lights_off:
+
 			debug_printf("Command captured: lights_off\n");
 			strcpy(publish_message.message, command_list[4]);
 			xQueueSendToBack(publish_queue, &publish_message, 0);
+
 			break;
 		case valve_on:
+
 			debug_printf("Command captured: valve_on\n");
 			strcpy(publish_message.message, command_list[5]);
 			xQueueSendToBack(publish_queue, &publish_message, 0);
+
 			break;
 		case valve_off:
+
 			debug_printf("Command captured: valve_off\n");
 			strcpy(publish_message.message, command_list[6]);
 			xQueueSendToBack(publish_queue, &publish_message, 0);
+
 			break;
 		case air_conditioner_on:
+
 			debug_printf("Command captured: air_conditioner_on\n");
 			strcpy(publish_message.message, command_list[7]);
 			xQueueSendToBack(publish_queue, &publish_message, 0);
+
 			break;
 		case air_conditioner_off:
+
 			debug_printf("Command captured: air_conditioner_off\n");
 			strcpy(publish_message.message, command_list[8]);
 			xQueueSendToBack(publish_queue, &publish_message, 0);
+
 			break;
 		case dosing_pump_on:
+
 			debug_printf("Command captured: dosing_pump_on\n");
 			strcpy(publish_message.message, command_list[9]);
 			xQueueSendToBack(publish_queue, &publish_message, 0);
+
 			break;
 		case dosing_pump_off:
+
 			debug_printf("Command captured: dosing_pump_off\n");
 			strcpy(publish_message.message, command_list[10]);
 			xQueueSendToBack(publish_queue, &publish_message, 0);
+
 			break;
 		case alarm_on:
+
 			debug_printf("Command captured: alarm_on\n");
 			strcpy(publish_message.message, command_list[11]);
 			xQueueSendToBack(publish_queue, &publish_message, 0);
+
 			break;
 		case alarm_off:
+
 			debug_printf("Command captured: alarm_off\n");
 			strcpy(publish_message.message, command_list[12]);
 			xQueueSendToBack(publish_queue, &publish_message, 0);
+
 			break;
 		default:
+
 			break;
 	}
 }
@@ -545,3 +641,4 @@ int message_to_index(message_t *message){
 	}
 	return -1;
 }
+
