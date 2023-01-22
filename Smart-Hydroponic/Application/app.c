@@ -143,7 +143,7 @@ int app_init(void){
 
 	xTaskCreate(sensor_task,
 				"Sensor Task",
-				512,
+				128,
 				NULL,
 				0,
 				NULL);
@@ -221,15 +221,15 @@ void broker_connect_task(void *argument){
 			}
 
 			if((response == STATUS_ERROR) || (response == TIMEOUT_ERROR))
-				 number_of_tries++;
+				 number_of_tries++ , debug_printf("number_of_tries: %d\n", number_of_tries);
 
 			if(number_of_tries >= 3){
 				debug_printf("Error: Three unsuccessful attempts.\n");
-				break;
+				while(1); // handle error properly.
 			}
 
 		}
-
+		number_of_tries = 0;
 		/* send subscribe requests.*/
 		subscribe_topics(topic_list);
 

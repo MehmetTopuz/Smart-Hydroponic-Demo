@@ -223,44 +223,44 @@ Status Command_Process(char **commandArray, char **responseArray, uint8_t number
 			Send_AT_Command(commandArray[currentCommand],strlen(commandArray[currentCommand]));
 			commandFlag = 0;
 		}
-			response = Wait_Response(responseArray[currentCommand], strlen(responseArray[currentCommand]), TIMEOUT);
+		response = Wait_Response(responseArray[currentCommand], strlen(responseArray[currentCommand]), TIMEOUT);
 
-			if(Read_Response("ERROR"))
+		if(Read_Response("ERROR"))
+		{
+			commandFlag = 1;
+			currentCommand = 0;
+			ringBuffer_flush(rx_buffer);
+			return STATUS_ERROR;
+		}
+		else if(response == IDLE)
+		{
+			return response;
+		}
+		else if(response == FOUND)
+		{
+			if(currentCommand == (numberOfCommands-1))
 			{
 				commandFlag = 1;
 				currentCommand = 0;
 				ringBuffer_flush(rx_buffer);
-				return STATUS_ERROR;
-			}
-			else if(response == IDLE)
-			{
-				return response;
-			}
-			else if(response == FOUND)
-			{
-				if(currentCommand == (numberOfCommands-1))
-				{
-					commandFlag = 1;
-					currentCommand = 0;
-					ringBuffer_flush(rx_buffer);
-					return STATUS_OK;
-				}
-				else
-				{
-					commandFlag = 1;
-					currentCommand += 1;
-					ringBuffer_flush(rx_buffer);
-					return IDLE;
-				}
-
+				return STATUS_OK;
 			}
 			else
 			{
 				commandFlag = 1;
-				currentCommand = 0;
+				currentCommand += 1;
 				ringBuffer_flush(rx_buffer);
-				return response;
+				return IDLE;
 			}
+
+		}
+		else
+		{
+			commandFlag = 1;
+			currentCommand = 0;
+			ringBuffer_flush(rx_buffer);
+			return response;
+		}
 	}
 
 
@@ -445,6 +445,12 @@ Status Wait_TCP_Message(char* receivedMessage, uint32_t timeout)
 
 }
 
+/**
+ * @brief	Sends bytes over TCP.
+ * @param	buffer: The address of the buffer that will be sent over TCP.
+ * @param	size: size of the buffer.
+ * @retval	Status: It returns STATUS_OK when transmission is successful otherwise returns one of error types of Status.
+ */
 Status Send_TCP_Bytes(uint8_t* buffer, size_t size)
 {
 
@@ -498,6 +504,11 @@ else if( response == STATUS_ERROR)
 
 }
 
+/**
+ * @brief	Disable echo mode for ESP8266.
+ * @param	None
+ * @retval	It returns STATUS_OK when disabling echo mode is successful.
+ */
 Status Disable_Echo_Mode(void){
 
 	Status response = IDLE;
@@ -516,6 +527,11 @@ Status Disable_Echo_Mode(void){
 	return response;
 }
 
+/**
+ * @brief	This function checks whether echo mode was disabled or not.
+ * @param	None
+ * @retval	It returns STATUS_OK when echo mode is disable.
+ */
 Status Is_Echo_Mode_Disabled(void){
 
 	static Status response = IDLE;
@@ -541,6 +557,11 @@ Status Is_Echo_Mode_Disabled(void){
 	return response;
 }
 
+/**
+ * @brief	This function checks whether wifi was connected or not.
+ * @param	None
+ * @retval	It returns STATUS_OK when wifi connection is available.
+ */
 Status Is_Wifi_Connected(void){
 
 	Status response = IDLE;
@@ -568,6 +589,11 @@ Status Is_Wifi_Connected(void){
 
 }
 
+/**
+ * @brief	Wrapper function to clear ring buffer.
+ * @param	None
+ * @retval	None
+ */
 void clear_ESP_ring_buffer(void){
 	ringBuffer_flush(rx_buffer);
 }

@@ -199,10 +199,41 @@ Status Read_TCP_Message(char* receivedMessage);
  * @retval	IDLE			:If there is not a string in the buffer and timeout does not occur yet, it returns IDLE
  */
 Status Wait_TCP_Message(char* receivedMessage, uint32_t timeout);
+
+/**
+ * @brief	Sends bytes over TCP.
+ * @param	buffer: The address of the buffer that will be sent over TCP.
+ * @param	size: size of the buffer.
+ * @retval	Status: It returns STATUS_OK when transmission is successful otherwise returns one of error types of Status.
+ */
 Status Send_TCP_Bytes(uint8_t* buffer, size_t size);
+
+/**
+ * @brief	Disable echo mode for ESP8266.
+ * @param	None
+ * @retval	It returns STATUS_OK when disabling echo mode is successful.
+ */
 Status Disable_Echo_Mode(void);
+
+/**
+ * @brief	This function checks whether echo mode was disabled or not.
+ * @param	None
+ * @retval	It returns STATUS_OK when echo mode is disable.
+ */
 Status Is_Echo_Mode_Disabled(void);
+
+/**
+ * @brief	This function checks whether wifi was connected or not.
+ * @param	None
+ * @retval	It returns STATUS_OK when wifi connection is available.
+ */
 Status Is_Wifi_Connected(void);
+
+/**
+ * @brief	Wrapper function to clear ring buffer.
+ * @param	None
+ * @retval	None
+ */
 void clear_ESP_ring_buffer(void);
 
 #ifdef __cplusplus

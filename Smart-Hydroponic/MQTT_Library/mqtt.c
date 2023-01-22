@@ -13,7 +13,12 @@
 
 RingBuffer *mqtt_rx_buffer;
 
-
+/**
+ * @brief	Initialize function of the MQTT library.
+ * @param	rx_buffer_size: Size of the buffer that will be allocated dynamically for the ring buffer
+ * 			to handle UART receive operations.
+ * @retval	The function returns 1 when the memory was allocated successfully. Otherwise, it will return 0.
+ */
 uint32_t mqtt_init(size_t rx_buffer_size){
 
 	mqtt_rx_buffer = ringBuffer_init(rx_buffer_size);
@@ -23,6 +28,13 @@ uint32_t mqtt_init(size_t rx_buffer_size){
 	return 0;
 }
 
+/**
+ * @brief	This function serializes the MQTT packets according to given packet type.
+ * @param	*buffer: The address of the buffer that will be representing the bytes of MQTT packets.
+ * @param	*packet: The address of the packet structure.
+ * @param	packetType: Enumerator type of packets. The function handles the void* parameter based on this enumerator type.
+ * @retval	The function returns the size of bytes that written to the buffer. Otherwise, it will return -1.
+ */
 int32_t mqtt_encode_packet(uint8_t *buffer, void *packet, mqtt_packet_types packetType ){
 
 	if(packetType == CONNECT_PACKET)
@@ -133,6 +145,13 @@ int32_t mqtt_encode_packet(uint8_t *buffer, void *packet, mqtt_packet_types pack
 	return -1;
 }
 
+/**
+ * @brief	This function tries to establish TCP connection to the MQTT broker.
+ * @param	ip: IP address of the MQTT broker.
+ * @param	port: Port of the MQTT broker.
+ * @retval	The function returns STATUS_OK when the broker connection was successful.
+ * 			Otherwise, it returns one of the error types of Status typedef.
+ */
 Status mqtt_connect_broker(const char* ip,const char* port){
 
 	static int isFirstCall = 0;
@@ -177,6 +196,10 @@ Status mqtt_connect_broker(const char* ip,const char* port){
 		status = Connect_TCP_Server(ip, port);
 		if(status == STATUS_OK)
 			state++;
+		else if(status == STATUS_ERROR){
+			isFirstCall = 0;
+			return status;
+		}
 		else
 			return status;
 	}
@@ -184,16 +207,24 @@ Status mqtt_connect_broker(const char* ip,const char* port){
 		status = Send_TCP_Bytes(packetBuffer, numberOfBytes);
 		if(status == STATUS_OK){
 			state = 0;
+			isFirstCall = 0;
 			return status;
 		}
 		else
 			return status;
 	}
 
+	isFirstCall  = 0;
 	return STATUS_ERROR;
 
 }
 
+/**
+ * @brief	This function tries to disconnect TCP connection with the MQTT broker.
+ * @param	None
+ * @retval	The function returns STATUS_OK when the broker connection was successfully disconnected.
+ * 			Otherwise, it returns one of the error types of Status typedef.
+ */
 Status mqtt_disconnect_broker(void){
 
 	uint8_t disconnect_packet[2] = {MQTT_DISCONNECT_HEADER,0x00};
@@ -209,6 +240,12 @@ Status mqtt_disconnect_broker(void){
 
 	return IDLE;
 }
+
+/**
+ * @brief	This function sends ping request to the broker and waits ping response packet.
+ * @param	None
+ * @retval	It returns STATUS_OK when ping response was received.
+ */
 Status mqtt_ping_request(void){
 
 	Status response = IDLE;
@@ -238,6 +275,14 @@ Status mqtt_ping_request(void){
 	return response;
 }
 
+/**
+ * @brief	This function publishes message over MQTT.
+ * @param	topic:		The address of topic.
+ * @param	payload:	Message bytes that will be sent to the broker.
+ * @param	size:		The size of the payload.
+ * @retval	It returns STATUS_OK when message was sent successfully. Otherwise, it returns one of the error types of Status typedef.
+ * 			Note: This function does not check whether the message was delivered or not because the QoS is currently set to zero.
+ */
 Status mqtt_publish_message(const char* topic, const uint8_t* payload, size_t size){
 
 	static int isFirstCall = 0;
@@ -278,6 +323,11 @@ Status mqtt_publish_message(const char* topic, const uint8_t* payload, size_t si
 
 }
 
+/**
+ * @brief	This function sends subscribe request to the broker.
+ * @param	topic: The name of the topic that will be subscribed.
+ * @retval	It returns STATUS_OK when subscribe request was sent successfully.
+ */
 Status mqtt_subcribe(const char* topic){
 
 	static int isFirstCall = 0;
@@ -321,11 +371,23 @@ Status mqtt_subcribe(const char* topic){
 
 extern Esp_Init_Typedef ESP8266;
 
+/**
+ * @brief	This function handles UART receive operations in background.
+ * 			It must be called in the UART interrupt handler function.
+ * @param 	None
+ * @retval	None
+ */
 void mqtt_receive_handler(void){
 
 	ringBuffer_push(mqtt_rx_buffer, ESP8266.UART_Receive());
 }
 
+/**
+ * @brief	This function checks if there is a publish message in the ring buffer.
+ * @param	packet: The address of the packet that will be filled with the function.
+ * @param	topic:	The address of the topic name that will be searched in the ring buffer.
+ * @retval	It returns -1 if message is not available. Otherwise, It returns the length of packet.
+ */
 int32_t mqtt_read_message(MQTT_Publish_Packet *packet, const char *topic){
 
 	int position = 0;
@@ -367,6 +429,11 @@ int32_t mqtt_read_message(MQTT_Publish_Packet *packet, const char *topic){
 	return strlen((char*)packet->payload);
 }
 
+/**
+ * @brief	This function clears the ring buffer that is used for MQTT messages.
+ * @param	None
+ * @retval	None
+ */
 void mqtt_clear_buffer(void){
 
 	ringBuffer_flush(mqtt_rx_buffer);
